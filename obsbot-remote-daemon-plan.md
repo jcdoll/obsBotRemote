@@ -11,6 +11,14 @@ This project has pivoted to a native Swift implementation.
 - The lab bench should be easy to run from this repo with `swift run obsbot-remote ...`.
 - The final product should use IOHIDManager for the remote and direct IOKit UVC control transfers for the camera.
 
+Current lab-bench status:
+
+- `map-buttons` captured the OBSBOT Smart Remote 2 button signatures into `docs/remote-button-capture.json`.
+- `listen` decodes live remote input and prints dry-run camera actions.
+- `camera-probe` validates the OBSBOT camera exposes standard UVC `zoom-abs` and `pan-tilt-abs`.
+- `camera-zoom` and `camera-pan-tilt` send native UVC `SET_CUR` requests directly through IOUSBLib.
+- The older Python and `uvc-util` sections below are retained as discovery notes, not the implementation path.
+
 ## Background
 
 The OBSBOT Smart Remote 2 is a 2.4GHz HID device that sends keyboard scancodes via a USB dongle. OBSBOT Center intercepts these scancodes and translates them into proprietary camera commands. Without the software running, the remote's camera control buttons do nothing useful.

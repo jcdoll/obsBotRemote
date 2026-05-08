@@ -34,4 +34,17 @@ expect(expectNoThrow("parse decimal") { try parseInteger("1234") } == 1234, "par
 expect(expectNoThrow("parse hex") { try parseInteger("0x1A2B") } == 0x1A2B, "parse hex")
 expect(formatHex(0x2A) == "0x002A", "hex formatting")
 
+let uvcDescriptor = Data([
+    9, 2, 36, 0, 1, 1, 0, 0x80, 50,
+    9, 4, 0, 0, 0, 0x0E, 0x01, 0, 0,
+    18, 0x24, 0x02, 3, 0x01, 0x02, 0, 0,
+    0, 0, 0, 0, 0, 0, 3, 0, 0x14, 0,
+])
+let uvcProbe = UVCDescriptorParser.parseConfiguration(uvcDescriptor)
+expect(uvcProbe.videoControlInterfaces.count == 1, "UVC video control interface parse")
+expect(uvcProbe.cameraTerminals.count == 1, "UVC camera terminal parse")
+expect(uvcProbe.cameraTerminals[0].terminalID == 3, "UVC camera terminal id")
+expect(uvcProbe.cameraTerminals[0].supports(.zoomAbsolute), "UVC zoom support bit")
+expect(uvcProbe.cameraTerminals[0].supports(.panTiltAbsolute), "UVC pan tilt support bit")
+
 print("self-test passed")

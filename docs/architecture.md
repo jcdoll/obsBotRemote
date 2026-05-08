@@ -37,7 +37,7 @@ IOKit UVC control transfer
 OBSBOT Tiny 2
 ```
 
-The current Swift CLI is the lab bench. It lists USB devices and sniffs HID events. The next hardware milestone is direct IOKit UVC camera-control writes for `pan-tilt-abs` and `zoom-abs`.
+The current Swift CLI is the lab bench. It lists USB devices, sniffs HID events, decodes live remote input, probes UVC descriptors, and can issue native UVC `GET_CUR`/`SET_CUR` requests for `pan-tilt-abs` and `zoom-abs`.
 
 ## Components
 
@@ -46,14 +46,20 @@ The current Swift CLI is the lab bench. It lists USB devices and sniffs HID even
 - camera state and action reduction;
 - numeric parsing and hex formatting;
 - IOKit USB device discovery;
-- future UVC control-transfer code.
+- UVC descriptor parsing and direct USB control requests.
+
+`ObsbotRemoteUSBBridge` is a small C target that wraps IOUSBLib calls needed for USB configuration descriptors and control requests. Swift owns the UVC parsing and command decisions.
 
 `ObsbotRemoteCLI` owns operator commands:
 
 - `doctor` checks local assumptions;
 - `devices` lists USB devices visible through IOKit;
 - `hid-sniff` records remote HID events;
-- `uvc-controls` reports the native UVC implementation status until writes are implemented.
+- `listen` decodes live remote input into dry-run camera actions;
+- `camera-probe` finds UVC VideoControl interfaces and camera-terminal controls;
+- `camera-zoom` reads or writes `zoom-abs`;
+- `camera-pan-tilt` writes `pan-tilt-abs`;
+- `uvc-controls` reports the native UVC implementation status.
 
 ## Lab Bench Strategy
 
@@ -63,6 +69,8 @@ The lab bench should be easy to run after cloning:
 swift run obsbot-remote doctor
 swift run obsbot-remote devices
 swift run obsbot-remote map-buttons
+swift run obsbot-remote listen
+swift run obsbot-remote camera-probe
 ```
 
 No external camera-control binary should be required. `uvc-util` remains useful as a reference implementation because it demonstrates direct IOKit UVC control, but users should not have to install it.
@@ -84,7 +92,7 @@ CI runs on macOS only because the package imports IOKit.
 Keep the package small until hardware behavior is known:
 
 - `HIDRemoteReader` for IOHIDManager matching, seizure, and callbacks;
-- `UVCController` for direct IOKit control transfers;
 - `Keymap` for mapping confirmed HID usage values to camera actions;
+- shared command loop that connects decoded buttons to `UVCController`;
 - LaunchAgent installation docs or templates;
 - Homebrew formula once the release binary is useful.

@@ -54,6 +54,14 @@ If two seconds is too short, extend the capture window:
 swift run obsbot-remote map-buttons --seconds 4
 ```
 
+After capture, use the live decoder to verify normal operation without moving the camera:
+
+```bash
+swift run obsbot-remote listen
+```
+
+The decoder matches live input against `docs/remote-button-capture.json` and prints the dry-run action, for example `Zoom In -> zoom(delta: 10)`.
+
 | Button | HID events | Notes |
 |---|---|---|
 | On/Off |  |  |

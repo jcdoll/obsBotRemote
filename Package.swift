@@ -14,7 +14,15 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "ObsbotRemoteUSBBridge",
+            linkerSettings: [
+                .linkedFramework("IOKit"),
+                .linkedFramework("CoreFoundation"),
+            ]
+        ),
+        .target(
             name: "ObsbotRemoteCore",
+            dependencies: ["ObsbotRemoteUSBBridge"],
             linkerSettings: [
                 .linkedFramework("IOKit")
             ]

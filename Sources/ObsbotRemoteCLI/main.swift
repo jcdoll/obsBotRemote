@@ -11,6 +11,9 @@ private func runMain() -> Int32 {
     } catch let error as CLIError {
         FileHandle.standardError.write(Data((error.message + "\n").utf8))
         return 2
+    } catch let error as UVCRequestError {
+        FileHandle.standardError.write(Data(("error: \(error.description)\n").utf8))
+        return 1
     } catch {
         FileHandle.standardError.write(Data(("error: \(error)\n").utf8))
         return 1
@@ -36,8 +39,16 @@ struct CommandLineTool {
             printDoctor()
         case "hid-sniff":
             try runHIDSniff(arguments: rest)
+        case "listen":
+            try runListen(arguments: rest)
         case "map-buttons":
             try runButtonMap(arguments: rest)
+        case "camera-probe":
+            try runCameraProbe(arguments: rest)
+        case "camera-zoom":
+            try runCameraZoom(arguments: rest)
+        case "camera-pan-tilt":
+            try runCameraPanTilt(arguments: rest)
         case "uvc-controls":
             printUVCControlsStatus()
         default:
@@ -54,7 +65,11 @@ struct CommandLineTool {
               doctor                         Check local runtime assumptions.
               devices                        List USB devices visible through IOKit.
               hid-sniff [options]            Print HID input values from the remote dongle.
+              listen [options]               Decode live remote input and print dry-run actions.
               map-buttons [options]          Prompt through known remote buttons and write JSON.
+              camera-probe [options]         Probe native UVC camera controls.
+              camera-zoom [options]          Read or set native UVC zoom-abs.
+              camera-pan-tilt [options]      Set native UVC pan-tilt-abs.
               uvc-controls                   Show native UVC implementation status.
 
             HID options:
@@ -68,6 +83,15 @@ struct CommandLineTool {
               --seize                        Try exclusive remote capture.
               --no-seize                     Do not try exclusive remote capture.
               --seconds <seconds>            Capture window per button, default 2.0.
+
+            listen options:
+              --input <path>                 Button capture JSON path.
+              --seize / --no-seize           Try exclusive remote capture, default no-seize.
+              --window <seconds>             Grouping window after first input, default 0.35.
+
+            camera options:
+              --vendor-id <id>               Camera USB vendor id, default 0x3564.
+              --product-id <id>              Camera USB product id, default 0xFF02.
             """
         )
     }
@@ -121,6 +145,89 @@ struct CommandLineTool {
 
         print("listening for HID input; press Ctrl+C to stop")
         CFRunLoopRun()
+    }
+
+    private func runListen(arguments: [String]) throws {
+        let options = try ListenOptions.parse(arguments)
+        let data = try Data(contentsOf: options.input)
+        let capture = try JSONDecoder().decode(ButtonMapCapture.self, from: data)
+        let matcher = RemoteButtonMatcher(captures: capture.buttons)
+        let collector = HIDEventCollector()
+
+        var openOptions = options.seize
+            ? IOOptionBits(kIOHIDOptionsTypeSeizeDevice)
+            : IOOptionBits(kIOHIDOptionsTypeNone)
+        var manager: IOHIDManager? = makeHIDManager(vendorID: options.vendorID, productID: options.productID)
+        var result = manager.map { IOHIDManagerOpen($0, openOptions) } ?? kIOReturnError
+        if result != kIOReturnSuccess && options.seize {
+            writeStandardError(
+                "warning: HID seize failed (\(formatHex(UInt32(bitPattern: result)))); falling back to non-seize mode."
+            )
+            manager = makeHIDManager(vendorID: options.vendorID, productID: options.productID)
+            openOptions = IOOptionBits(kIOHIDOptionsTypeNone)
+            result = manager.map { IOHIDManagerOpen($0, openOptions) } ?? kIOReturnError
+        }
+        if result != kIOReturnSuccess {
+            writeStandardError(
+                "warning: HID manager open failed (\(formatHex(UInt32(bitPattern: result)))); using terminal byte capture only."
+            )
+            manager = nil
+        }
+
+        if let manager {
+            IOHIDManagerRegisterInputValueCallback(
+                manager,
+                hidCollectCallback,
+                Unmanaged.passUnretained(collector).toOpaque()
+            )
+            IOHIDManagerScheduleWithRunLoop(
+                manager,
+                CFRunLoopGetCurrent(),
+                CFRunLoopMode.defaultMode.rawValue
+            )
+        }
+        defer {
+            if let manager {
+                IOHIDManagerUnscheduleFromRunLoop(
+                    manager,
+                    CFRunLoopGetCurrent(),
+                    CFRunLoopMode.defaultMode.rawValue
+                )
+                IOHIDManagerClose(manager, openOptions)
+            }
+        }
+
+        print("Live remote decoder")
+        print("Loaded \(capture.buttons.count) captured button signature(s) from \(options.input.path).")
+        print("Press remote buttons to print dry-run actions; press Ctrl+C to stop.")
+
+        var terminalMode = TerminalRawMode()
+        terminalMode.enable()
+        defer {
+            terminalMode.restore()
+        }
+
+        while true {
+            guard let input = waitForRemoteInput(
+                collector: collector,
+                window: options.window
+            ) else {
+                print("^C")
+                return
+            }
+
+            switch matcher.match(input) {
+            case let .matched(button):
+                print("\(button) -> \(dryRunActionDescription(for: button))")
+            case let .ambiguous(buttons):
+                print("ambiguous \(buttons.joined(separator: " / ")) -> \(dryRunActionDescription(for: buttons[0]))")
+            case .unknown:
+                print(
+                    "unknown input hid=\(hidSignatureDescription(input.hidEvents)) terminal=\(escapedTerminalBytes(input.terminalBytes))"
+                )
+            }
+            fflush(stdout)
+        }
     }
 
     private func runButtonMap(arguments: [String]) throws {
@@ -264,6 +371,79 @@ struct CommandLineTool {
         try writeButtonCapture(captures, options: options)
     }
 
+    private func runCameraProbe(arguments: [String]) throws {
+        let options = try CameraOptions.parse(arguments)
+        let controller = UVCController(vendorID: options.vendorID, productID: options.productID)
+        let probe = try controller.probe()
+
+        print("camera \(formatHex(UInt32(options.vendorID))):\(formatHex(UInt32(options.productID)))")
+        print("configurationDescriptorLength=\(probe.configurationLength)")
+        if probe.videoControlInterfaces.isEmpty {
+            print("videoControlInterfaces=none")
+        } else {
+            for interface in probe.videoControlInterfaces {
+                print(
+                    "videoControlInterface number=\(interface.number) alternate=\(interface.alternateSetting) protocol=\(interface.protocolNumber)"
+                )
+            }
+        }
+
+        if probe.cameraTerminals.isEmpty {
+            print("cameraTerminals=none")
+        } else {
+            for terminal in probe.cameraTerminals {
+                let controls = [
+                    UVCCameraTerminalControl.zoomAbsolute,
+                    UVCCameraTerminalControl.panTiltAbsolute,
+                ].filter { terminal.supports($0) }
+                    .map(\.displayName)
+                    .joined(separator: ", ")
+                print(
+                    "cameraTerminal id=\(terminal.terminalID) interface=\(terminal.interfaceNumber) type=\(formatHex(UInt32(terminal.terminalType))) controls=\(controls.isEmpty ? "none" : controls)"
+                )
+            }
+        }
+
+        if let zoom = try? controller.readZoom() {
+            print("zoomCurrent=\(zoom)")
+        }
+        if let panTilt = try? controller.readPanTilt() {
+            print("panTiltCurrent pan=\(panTilt.pan) tilt=\(panTilt.tilt)")
+        }
+    }
+
+    private func runCameraZoom(arguments: [String]) throws {
+        let options = try CameraZoomOptions.parse(arguments)
+        let controller = UVCController(vendorID: options.vendorID, productID: options.productID)
+
+        if let delta = options.delta {
+            let current = try controller.readZoom()
+            let next = max(0, current + delta)
+            try controller.setZoom(next)
+            print("zoom \(current) -> \(next)")
+            return
+        }
+
+        if let value = options.value {
+            try controller.setZoom(value)
+            print("zoom set \(value)")
+            return
+        }
+
+        let current = try controller.readZoom()
+        print("zoomCurrent=\(current)")
+    }
+
+    private func runCameraPanTilt(arguments: [String]) throws {
+        let options = try CameraPanTiltOptions.parse(arguments)
+        let controller = UVCController(vendorID: options.vendorID, productID: options.productID)
+        guard let pan = options.pan, let tilt = options.tilt else {
+            throw CLIError("camera-pan-tilt requires --pan and --tilt")
+        }
+        try controller.setPanTilt(pan: pan, tilt: tilt)
+        print("panTilt set pan=\(pan) tilt=\(tilt)")
+    }
+
     private func writeButtonCapture(
         _ captures: [ButtonCapture],
         options: ButtonMapOptions,
@@ -309,12 +489,12 @@ struct CommandLineTool {
     private func printUVCControlsStatus() {
         print(
             """
-            native UVC control transfer support is intentionally not delegated to uvc-util.
+            native UVC control transfer support is implemented directly through IOUSBLib.
 
-            next implementation step:
-              - enumerate UVC camera-control interfaces through IOKit;
-              - read pan-tilt-abs and zoom-abs control descriptors;
-              - send SET_CUR control transfers directly from Swift.
+            lab commands:
+              - camera-probe
+              - camera-zoom [--value <raw>|--delta <raw>]
+              - camera-pan-tilt --pan <raw> --tilt <raw>
             """
         )
     }
@@ -408,6 +588,185 @@ struct ButtonMapOptions {
     }
 }
 
+struct ListenOptions {
+    var vendorID: UInt32? = 0x1106
+    var productID: UInt32? = 0xB106
+    var seize: Bool = false
+    var input: URL = URL(fileURLWithPath: "docs/remote-button-capture.json")
+    var window: TimeInterval = 0.35
+
+    static func parse(_ arguments: [String]) throws -> ListenOptions {
+        var options = ListenOptions()
+        var index = 0
+        while index < arguments.count {
+            switch arguments[index] {
+            case "--vendor-id":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--vendor-id requires a value")
+                }
+                options.vendorID = try parseInteger(arguments[index])
+            case "--product-id":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--product-id requires a value")
+                }
+                options.productID = try parseInteger(arguments[index])
+            case "--seize":
+                options.seize = true
+            case "--no-seize":
+                options.seize = false
+            case "--input":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--input requires a value")
+                }
+                options.input = URL(fileURLWithPath: arguments[index])
+            case "--window":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--window requires a value")
+                }
+                guard let window = TimeInterval(arguments[index]), window > 0 else {
+                    throw CLIError("--window must be a positive number")
+                }
+                options.window = window
+            default:
+                throw CLIError("unknown listen option: \(arguments[index])")
+            }
+            index += 1
+        }
+        return options
+    }
+}
+
+struct CameraOptions {
+    var vendorID: UInt16 = 0x3564
+    var productID: UInt16 = 0xFF02
+
+    static func parse(_ arguments: [String]) throws -> CameraOptions {
+        var options = CameraOptions()
+        var index = 0
+        while index < arguments.count {
+            switch arguments[index] {
+            case "--vendor-id":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--vendor-id requires a value")
+                }
+                options.vendorID = try parseUInt16(arguments[index], option: "--vendor-id")
+            case "--product-id":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--product-id requires a value")
+                }
+                options.productID = try parseUInt16(arguments[index], option: "--product-id")
+            default:
+                throw CLIError("unknown camera option: \(arguments[index])")
+            }
+            index += 1
+        }
+        return options
+    }
+}
+
+struct CameraZoomOptions {
+    var vendorID: UInt16 = 0x3564
+    var productID: UInt16 = 0xFF02
+    var value: Int?
+    var delta: Int?
+
+    static func parse(_ arguments: [String]) throws -> CameraZoomOptions {
+        var options = CameraZoomOptions()
+        var index = 0
+        while index < arguments.count {
+            switch arguments[index] {
+            case "--vendor-id":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--vendor-id requires a value")
+                }
+                options.vendorID = try parseUInt16(arguments[index], option: "--vendor-id")
+            case "--product-id":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--product-id requires a value")
+                }
+                options.productID = try parseUInt16(arguments[index], option: "--product-id")
+            case "--value":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--value requires a value")
+                }
+                options.value = try parseSignedInteger(arguments[index], option: "--value")
+            case "--delta":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--delta requires a value")
+                }
+                options.delta = try parseSignedInteger(arguments[index], option: "--delta")
+            default:
+                throw CLIError("unknown camera-zoom option: \(arguments[index])")
+            }
+            index += 1
+        }
+        if options.value != nil, options.delta != nil {
+            throw CLIError("camera-zoom accepts either --value or --delta, not both")
+        }
+        return options
+    }
+}
+
+struct CameraPanTiltOptions {
+    var vendorID: UInt16 = 0x3564
+    var productID: UInt16 = 0xFF02
+    var pan: Int32?
+    var tilt: Int32?
+
+    static func parse(_ arguments: [String]) throws -> CameraPanTiltOptions {
+        var options = CameraPanTiltOptions()
+        var index = 0
+        while index < arguments.count {
+            switch arguments[index] {
+            case "--vendor-id":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--vendor-id requires a value")
+                }
+                options.vendorID = try parseUInt16(arguments[index], option: "--vendor-id")
+            case "--product-id":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--product-id requires a value")
+                }
+                options.productID = try parseUInt16(arguments[index], option: "--product-id")
+            case "--pan":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--pan requires a value")
+                }
+                options.pan = try parseInt32(arguments[index], option: "--pan")
+            case "--tilt":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--tilt requires a value")
+                }
+                options.tilt = try parseInt32(arguments[index], option: "--tilt")
+            default:
+                throw CLIError("unknown camera-pan-tilt option: \(arguments[index])")
+            }
+            index += 1
+        }
+        guard options.pan != nil else {
+            throw CLIError("camera-pan-tilt requires --pan")
+        }
+        guard options.tilt != nil else {
+            throw CLIError("camera-pan-tilt requires --tilt")
+        }
+        return options
+    }
+}
+
 struct ButtonMapCapture: Codable {
     var capturedAt: String
     var vendorID: String?
@@ -461,6 +820,55 @@ final class HIDEventCollector: @unchecked Sendable {
     }
 }
 
+struct HIDUsage: Hashable {
+    var usagePage: UInt32
+    var usage: UInt32
+}
+
+struct HIDSignature: Hashable {
+    var usages: [HIDUsage]
+}
+
+enum RemoteButtonMatch {
+    case matched(String)
+    case ambiguous([String])
+    case unknown
+}
+
+struct RemoteButtonMatcher {
+    private var terminalMatches: [[UInt8]: String] = [:]
+    private var hidMatches: [HIDSignature: [String]] = [:]
+
+    init(captures: [ButtonCapture]) {
+        for capture in captures where !capture.skipped {
+            if let terminalBytes = capture.terminalBytes, !terminalBytes.isEmpty {
+                terminalMatches[terminalBytes] = capture.button
+            }
+            let signature = hidSignature(from: capture.events)
+            if !signature.usages.isEmpty {
+                hidMatches[signature, default: []].append(capture.button)
+            }
+        }
+    }
+
+    func match(_ input: InputCapture) -> RemoteButtonMatch {
+        if !input.terminalBytes.isEmpty, let button = terminalMatches[input.terminalBytes] {
+            return .matched(button)
+        }
+
+        let signature = hidSignature(from: input.hidEvents)
+        guard !signature.usages.isEmpty, let buttons = hidMatches[signature], !buttons.isEmpty else {
+            return .unknown
+        }
+
+        let uniqueButtons = Array(Set(buttons)).sorted()
+        if uniqueButtons.count == 1, let button = uniqueButtons.first {
+            return .matched(button)
+        }
+        return .ambiguous(uniqueButtons)
+    }
+}
+
 private func upsertButtonCapture(_ capture: ButtonCapture, in captures: inout [ButtonCapture]) {
     if let index = captures.firstIndex(where: { $0.button == capture.button }) {
         captures[index] = capture
@@ -475,6 +883,67 @@ private func buttonCaptureSummary(_ capture: ButtonCapture) -> String {
     }
     let terminalCount = capture.terminalBytes?.count ?? 0
     return "(\(capture.events.count) HID event(s), \(terminalCount) terminal byte(s))"
+}
+
+private func hidSignature(from events: [HIDEventRecord]) -> HIDSignature {
+    let usages = Set(
+        events.compactMap { event -> HIDUsage? in
+            guard event.state == "down", event.usage != 1 else {
+                return nil
+            }
+            return HIDUsage(usagePage: event.usagePage, usage: event.usage)
+        }
+    )
+    return HIDSignature(
+        usages: usages.sorted {
+            ($0.usagePage, $0.usage) < ($1.usagePage, $1.usage)
+        }
+    )
+}
+
+private func hidSignatureDescription(_ events: [HIDEventRecord]) -> String {
+    let signature = hidSignature(from: events)
+    guard !signature.usages.isEmpty else {
+        return "none"
+    }
+    return signature.usages
+        .map { "page=\($0.usagePage)/usage=\($0.usage)" }
+        .joined(separator: ",")
+}
+
+private func dryRunActionDescription(for button: String) -> String {
+    let moveStep = 1_800
+    let zoomStep = 10
+
+    switch button {
+    case "Preset P1":
+        return "recallPreset(P1)"
+    case "Preset P2":
+        return "recallPreset(P2)"
+    case "Preset P3":
+        return "recallPreset(P3)"
+    case "Gimbal Up":
+        return "move(panDelta: 0, tiltDelta: \(moveStep))"
+    case "Gimbal Down":
+        return "move(panDelta: 0, tiltDelta: -\(moveStep))"
+    case "Gimbal Left":
+        return "move(panDelta: -\(moveStep), tiltDelta: 0)"
+    case "Gimbal Right":
+        return "move(panDelta: \(moveStep), tiltDelta: 0)"
+    case "Gimbal Reset":
+        return "center"
+    case "Zoom In":
+        return "zoom(delta: \(zoomStep))"
+    case "Zoom Out":
+        return "zoom(delta: -\(zoomStep))"
+    case "On/Off", "Choose Device 1", "Choose Device 2", "Choose Device 3", "Choose Device 4",
+         "Laser / Whiteboard click", "Laser / Whiteboard double-click", "Laser / Whiteboard hold",
+         "Hyperlink click", "Hyperlink double-click", "Hyperlink hold",
+         "Page Up click", "Page Up hold", "Page Down click", "Page Down hold":
+        return "ignored"
+    default:
+        return "unsupported"
+    }
 }
 
 private func makeHIDManager(vendorID: UInt32?, productID: UInt32?) -> IOHIDManager {
@@ -660,6 +1129,39 @@ private func captureInputs(
     }
 }
 
+private func waitForRemoteInput(
+    collector: HIDEventCollector,
+    window: TimeInterval
+) -> InputCapture? {
+    collector.reset()
+    _ = readAvailableTerminalBytes()
+
+    var terminalBytes: [UInt8] = []
+    while true {
+        CFRunLoopRunInMode(CFRunLoopMode.defaultMode, 0.05, true)
+        let bytes = readAvailableTerminalBytes()
+        if bytes.contains(0x03) || bytes.contains(0x04) {
+            return nil
+        }
+        terminalBytes.append(contentsOf: bytes)
+        if !collector.snapshot().isEmpty || !terminalBytes.isEmpty {
+            break
+        }
+    }
+
+    let end = Date().addingTimeInterval(window)
+    while end.timeIntervalSinceNow > 0 {
+        CFRunLoopRunInMode(CFRunLoopMode.defaultMode, min(end.timeIntervalSinceNow, 0.05), true)
+        let bytes = readAvailableTerminalBytes()
+        if bytes.contains(0x03) || bytes.contains(0x04) {
+            return nil
+        }
+        terminalBytes.append(contentsOf: bytes)
+    }
+
+    return InputCapture(hidEvents: collector.snapshot(), terminalBytes: terminalBytes)
+}
+
 private func readPromptAnswer() -> String {
     if isatty(STDIN_FILENO) != 1 {
         return (readLine() ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
@@ -761,6 +1263,29 @@ private func escapedTerminalBytes(_ bytes: [UInt8]) -> String {
             "\\x" + String(byte, radix: 16, uppercase: true)
         }
     }.joined()
+}
+
+private func parseUInt16(_ text: String, option: String) throws -> UInt16 {
+    let value = try parseInteger(text)
+    guard let narrowed = UInt16(exactly: value) else {
+        throw CLIError("\(option) must fit in 16 bits")
+    }
+    return narrowed
+}
+
+private func parseSignedInteger(_ text: String, option: String) throws -> Int {
+    guard let value = Int(text.trimmingCharacters(in: .whitespacesAndNewlines)) else {
+        throw CLIError("\(option) must be an integer")
+    }
+    return value
+}
+
+private func parseInt32(_ text: String, option: String) throws -> Int32 {
+    let value = try parseSignedInteger(text, option: option)
+    guard let narrowed = Int32(exactly: value) else {
+        throw CLIError("\(option) must fit in 32 bits")
+    }
+    return narrowed
 }
 
 exit(runMain())
