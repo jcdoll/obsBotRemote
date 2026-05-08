@@ -1,0 +1,1965 @@
+{
+  "buttons" : [
+    {
+      "button" : "On\/Off",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275777.6305861,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.T",
+          "state" : "down",
+          "timestamp" : 1778275777.6307302,
+          "usage" : 23,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275777.630739,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275777.630742,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275777.6464782,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.T",
+          "state" : "up",
+          "timestamp" : 1778275777.6464891,
+          "usage" : 23,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275777.646491,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275777.646492,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        20
+      ],
+      "terminalEscaped" : "\\e\\x14"
+    },
+    {
+      "button" : "Choose Device 1",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275781.5235581,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage45",
+          "state" : "down",
+          "timestamp" : 1778275781.523583,
+          "usage" : 45,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275781.52359,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275781.523593,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275781.703508,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage45",
+          "state" : "up",
+          "timestamp" : 1778275781.7035298,
+          "usage" : 45,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275781.7035332,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275781.7035341,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        31
+      ],
+      "terminalEscaped" : "\\e\\x1F"
+    },
+    {
+      "button" : "Choose Device 2",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275784.088557,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage46",
+          "state" : "down",
+          "timestamp" : 1778275784.088582,
+          "usage" : 46,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275784.088589,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275784.088593,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275784.2615318,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage46",
+          "state" : "up",
+          "timestamp" : 1778275784.261551,
+          "usage" : 46,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275784.261554,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275784.261555,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        61
+      ],
+      "terminalEscaped" : "\\e="
+    },
+    {
+      "button" : "Choose Device 3",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275786.451565,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage54",
+          "state" : "down",
+          "timestamp" : 1778275786.451591,
+          "usage" : 54,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275786.4515982,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275786.451602,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275786.6235209,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage54",
+          "state" : "up",
+          "timestamp" : 1778275786.6235418,
+          "usage" : 54,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275786.6235452,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275786.6235461,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        44
+      ],
+      "terminalEscaped" : "\\e,"
+    },
+    {
+      "button" : "Choose Device 4",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275788.738577,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage55",
+          "state" : "down",
+          "timestamp" : 1778275788.738606,
+          "usage" : 55,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275788.7386332,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275788.738637,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275788.895555,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage55",
+          "state" : "up",
+          "timestamp" : 1778275788.8955731,
+          "usage" : 55,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275788.895576,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275788.895578,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        46
+      ],
+      "terminalEscaped" : "\\e."
+    },
+    {
+      "button" : "Preset P1",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275791.1465669,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.Q",
+          "state" : "down",
+          "timestamp" : 1778275791.146586,
+          "usage" : 20,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275791.146595,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275791.1465979,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275791.355554,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.Q",
+          "state" : "up",
+          "timestamp" : 1778275791.3555698,
+          "usage" : 20,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275791.3555741,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275791.355575,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27
+      ],
+      "terminalEscaped" : "\\e"
+    },
+    {
+      "button" : "Preset P2",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275793.546595,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.E",
+          "state" : "down",
+          "timestamp" : 1778275793.546618,
+          "usage" : 8,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275793.546627,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275793.54663,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275793.703548,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.E",
+          "state" : "up",
+          "timestamp" : 1778275793.703566,
+          "usage" : 8,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275793.70357,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275793.7035708,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        5
+      ],
+      "terminalEscaped" : "\\e\\x5"
+    },
+    {
+      "button" : "Preset P3",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275795.89359,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.R",
+          "state" : "down",
+          "timestamp" : 1778275795.8936129,
+          "usage" : 21,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275795.893622,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275795.893642,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275796.050571,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.R",
+          "state" : "up",
+          "timestamp" : 1778275796.0505881,
+          "usage" : 21,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275796.050591,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275796.050592,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        18
+      ],
+      "terminalEscaped" : "\\e\\x12"
+    },
+    {
+      "button" : "Gimbal Up",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275798.196604,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.upArrow",
+          "state" : "down",
+          "timestamp" : 1778275798.196621,
+          "usage" : 82,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275798.196628,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275798.196632,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275798.36057,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.upArrow",
+          "state" : "up",
+          "timestamp" : 1778275798.360584,
+          "usage" : 82,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275798.3605871,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275798.360588,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        27,
+        91,
+        65
+      ],
+      "terminalEscaped" : "\\e\\e[A"
+    },
+    {
+      "button" : "Gimbal Down",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275800.60361,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.downArrow",
+          "state" : "down",
+          "timestamp" : 1778275800.60363,
+          "usage" : 81,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275800.6036382,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275800.603642,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275800.7615762,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.downArrow",
+          "state" : "up",
+          "timestamp" : 1778275800.761588,
+          "usage" : 81,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275800.761591,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275800.761592,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        27,
+        91,
+        66
+      ],
+      "terminalEscaped" : "\\e\\e[B"
+    },
+    {
+      "button" : "Gimbal Left",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275802.988591,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftArrow",
+          "state" : "down",
+          "timestamp" : 1778275802.9886088,
+          "usage" : 80,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275802.988616,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275802.98862,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275803.191572,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftArrow",
+          "state" : "up",
+          "timestamp" : 1778275803.191585,
+          "usage" : 80,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275803.191588,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275803.1915889,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        27,
+        91,
+        68
+      ],
+      "terminalEscaped" : "\\e\\e[D"
+    },
+    {
+      "button" : "Gimbal Right",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275805.396624,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.rightArrow",
+          "state" : "down",
+          "timestamp" : 1778275805.396645,
+          "usage" : 79,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275805.3966532,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275805.396657,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275805.5535722,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.rightArrow",
+          "state" : "up",
+          "timestamp" : 1778275805.553585,
+          "usage" : 79,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275805.553588,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275805.5535889,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        27,
+        91,
+        67
+      ],
+      "terminalEscaped" : "\\e\\e[C"
+    },
+    {
+      "button" : "Gimbal Reset",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275808.096638,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.0",
+          "state" : "down",
+          "timestamp" : 1778275808.096668,
+          "usage" : 39,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275808.0966759,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275808.0966802,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275808.283629,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.0",
+          "state" : "up",
+          "timestamp" : 1778275808.2836561,
+          "usage" : 39,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275808.28366,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275808.2836618,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        48
+      ],
+      "terminalEscaped" : "\\e0"
+    },
+    {
+      "button" : "Zoom In",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275810.15163,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.F",
+          "state" : "down",
+          "timestamp" : 1778275810.151651,
+          "usage" : 9,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275810.151659,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275810.1516628,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275810.3237429,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.F",
+          "state" : "up",
+          "timestamp" : 1778275810.32376,
+          "usage" : 9,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275810.323763,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275810.323765,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        6
+      ],
+      "terminalEscaped" : "\\e\\x6"
+    },
+    {
+      "button" : "Zoom Out",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275812.558628,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.H",
+          "state" : "down",
+          "timestamp" : 1778275812.5586529,
+          "usage" : 11,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275812.558661,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275812.558665,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275812.723629,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.H",
+          "state" : "up",
+          "timestamp" : 1778275812.723648,
+          "usage" : 11,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275812.723652,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275812.723654,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        8
+      ],
+      "terminalEscaped" : "\\e\\x8"
+    },
+    {
+      "button" : "Track",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275815.0036612,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.L",
+          "state" : "down",
+          "timestamp" : 1778275815.003701,
+          "usage" : 15,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275815.00371,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275815.0037131,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275815.160645,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.L",
+          "state" : "up",
+          "timestamp" : 1778275815.1606631,
+          "usage" : 15,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275815.160666,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275815.160668,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        12
+      ],
+      "terminalEscaped" : "\\e\\xC"
+    },
+    {
+      "button" : "Close-up",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275817.771661,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage47",
+          "state" : "down",
+          "timestamp" : 1778275817.7716851,
+          "usage" : 47,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275817.771692,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275817.771696,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275817.951655,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage47",
+          "state" : "up",
+          "timestamp" : 1778275817.951672,
+          "usage" : 47,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275817.951675,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275817.951676,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        27
+      ],
+      "terminalEscaped" : "\\e\\e"
+    },
+    {
+      "button" : "Hand Track",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275819.968682,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage48",
+          "state" : "down",
+          "timestamp" : 1778275819.9687061,
+          "usage" : 48,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275819.9687119,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275819.9687161,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275820.088655,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage48",
+          "state" : "up",
+          "timestamp" : 1778275820.0886722,
+          "usage" : 48,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275820.088676,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275820.088677,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        29
+      ],
+      "terminalEscaped" : "\\e\\x1D"
+    },
+    {
+      "button" : "Laser \/ Whiteboard click",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275823.531674,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage49",
+          "state" : "down",
+          "timestamp" : 1778275823.5317001,
+          "usage" : 49,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275823.531708,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275823.531711,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275823.598637,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage49",
+          "state" : "up",
+          "timestamp" : 1778275823.598655,
+          "usage" : 49,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275823.598658,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275823.598659,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        28
+      ],
+      "terminalEscaped" : "\\e\\x1C"
+    },
+    {
+      "button" : "Laser \/ Whiteboard double-click",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275826.1336741,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage56",
+          "state" : "down",
+          "timestamp" : 1778275826.133696,
+          "usage" : 56,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275826.133702,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275826.1337051,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275826.193637,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage56",
+          "state" : "up",
+          "timestamp" : 1778275826.193653,
+          "usage" : 56,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275826.193656,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275826.193657,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        47
+      ],
+      "terminalEscaped" : "\\e\/"
+    },
+    {
+      "button" : "Laser \/ Whiteboard hold",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275830.5887032,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage49",
+          "state" : "down",
+          "timestamp" : 1778275830.5887299,
+          "usage" : 49,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275830.588738,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275830.5887408,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275831.2636771,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage49",
+          "state" : "up",
+          "timestamp" : 1778275831.263696,
+          "usage" : 49,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275831.263699,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275831.263701,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        28,
+        27,
+        28,
+        27,
+        28,
+        27,
+        28
+      ],
+      "terminalEscaped" : "\\e\\x1C\\e\\x1C\\e\\x1C\\e\\x1C"
+    },
+    {
+      "button" : "Desk Mode",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275835.0517302,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage51",
+          "state" : "down",
+          "timestamp" : 1778275835.051755,
+          "usage" : 51,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "down",
+          "timestamp" : 1778275835.051762,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "down",
+          "timestamp" : 1778275835.051766,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275835.200653,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.usage51",
+          "state" : "up",
+          "timestamp" : 1778275835.2006679,
+          "usage" : 51,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftAlt",
+          "state" : "up",
+          "timestamp" : 1778275835.20067,
+          "usage" : 226,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftControl",
+          "state" : "up",
+          "timestamp" : 1778275835.2006721,
+          "usage" : 224,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        27,
+        59
+      ],
+      "terminalEscaped" : "\\e;"
+    },
+    {
+      "button" : "Hyperlink click",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275841.974746,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.tab",
+          "state" : "down",
+          "timestamp" : 1778275841.9747748,
+          "usage" : 43,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275842.0427032,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.tab",
+          "state" : "up",
+          "timestamp" : 1778275842.042714,
+          "usage" : 43,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        9
+      ],
+      "terminalEscaped" : "\\t"
+    },
+    {
+      "button" : "Hyperlink double-click",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275844.9897351,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.return",
+          "state" : "down",
+          "timestamp" : 1778275844.9897509,
+          "usage" : 40,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275845.057708,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.return",
+          "state" : "up",
+          "timestamp" : 1778275845.0577211,
+          "usage" : 40,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        10
+      ],
+      "terminalEscaped" : "\\n"
+    },
+    {
+      "button" : "Hyperlink hold",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275848.514869,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.tab",
+          "state" : "down",
+          "timestamp" : 1778275848.514889,
+          "usage" : 43,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.leftGUI",
+          "state" : "down",
+          "timestamp" : 1778275848.51492,
+          "usage" : 227,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275848.5227308,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.tab",
+          "state" : "up",
+          "timestamp" : 1778275848.522736,
+          "usage" : 43,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.leftGUI",
+          "state" : "up",
+          "timestamp" : 1778275849.0327458,
+          "usage" : 227,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false
+    },
+    {
+      "button" : "Page Up click",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275859.164833,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.pageDown",
+          "state" : "down",
+          "timestamp" : 1778275859.164853,
+          "usage" : 78,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275859.2317429,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.pageDown",
+          "state" : "up",
+          "timestamp" : 1778275859.231759,
+          "usage" : 78,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false
+    },
+    {
+      "button" : "Page Up hold",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275862.892782,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.B",
+          "state" : "down",
+          "timestamp" : 1778275862.892799,
+          "usage" : 5,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275862.8997788,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.B",
+          "state" : "up",
+          "timestamp" : 1778275862.899794,
+          "usage" : 5,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false,
+      "terminalBytes" : [
+        98
+      ],
+      "terminalEscaped" : "b"
+    },
+    {
+      "button" : "Page Down click",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275865.674797,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.pageUp",
+          "state" : "down",
+          "timestamp" : 1778275865.6748161,
+          "usage" : 75,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275865.742821,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.pageUp",
+          "state" : "up",
+          "timestamp" : 1778275865.742838,
+          "usage" : 75,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false
+    },
+    {
+      "button" : "Page Down hold",
+      "events" : [
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275870.639804,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.pageUp",
+          "state" : "down",
+          "timestamp" : 1778275870.639823,
+          "usage" : 75,
+          "usagePage" : 7,
+          "value" : 1
+        },
+        {
+          "name" : "keyboard.errorRollOver",
+          "state" : "up",
+          "timestamp" : 1778275870.6998181,
+          "usage" : 1,
+          "usagePage" : 7,
+          "value" : 0
+        },
+        {
+          "name" : "keyboard.pageUp",
+          "state" : "up",
+          "timestamp" : 1778275870.6998339,
+          "usage" : 75,
+          "usagePage" : 7,
+          "value" : 0
+        }
+      ],
+      "skipped" : false
+    }
+  ],
+  "capturedAt" : "2026-05-08T21:31:11Z",
+  "productID" : "0xB106",
+  "seize" : false,
+  "vendorID" : "0x1106"
+}
