@@ -49,6 +49,12 @@ struct CommandLineTool {
             try runCameraZoom(arguments: rest)
         case "camera-pan-tilt":
             try runCameraPanTilt(arguments: rest)
+        case "camera-power":
+            try runCameraPower(arguments: rest)
+        case "camera-xu-get":
+            try runCameraXUGet(arguments: rest)
+        case "camera-xu-dump":
+            try runCameraXUDump(arguments: rest)
         case "uvc-controls":
             printUVCControlsStatus()
         default:
@@ -70,6 +76,9 @@ struct CommandLineTool {
               camera-probe [options]         Probe native UVC camera controls.
               camera-zoom [options]          Read or set native UVC zoom-abs.
               camera-pan-tilt [options]      Set native UVC pan-tilt-abs.
+              camera-power [status|on|off]   Read or toggle OBSBOT sleep/wake state.
+              camera-xu-get [options]        Read one UVC extension-unit selector.
+              camera-xu-dump [options]       Read advertised UVC extension-unit selectors.
               uvc-controls                   Show native UVC implementation status.
 
             HID options:
@@ -92,6 +101,10 @@ struct CommandLineTool {
             camera options:
               --vendor-id <id>               Camera USB vendor id, default 0x3564.
               --product-id <id>              Camera USB product id, default 0xFF02.
+              --unit <id>                    Extension unit id for camera-xu-get.
+              --selector <id>                Extension selector id for camera-xu-get.
+              --length <bytes>               Override GET_CUR read length.
+              --max-length <bytes>           Max auto-read length for camera-xu-dump.
             """
         )
     }
@@ -404,6 +417,17 @@ struct CommandLineTool {
             }
         }
 
+        if probe.extensionUnits.isEmpty {
+            print("extensionUnits=none")
+        } else {
+            for unit in probe.extensionUnits {
+                let selectors = unit.advertisedSelectors.map(String.init).joined(separator: ",")
+                print(
+                    "extensionUnit id=\(unit.unitID) interface=\(unit.interfaceNumber) guid=\(unit.guidString) controls=\(unit.numControls) selectors=\(selectors.isEmpty ? "none" : selectors)"
+                )
+            }
+        }
+
         if let zoom = try? controller.readZoom() {
             print("zoomCurrent=\(zoom)")
         }
@@ -442,6 +466,88 @@ struct CommandLineTool {
         }
         try controller.setPanTilt(pan: pan, tilt: tilt)
         print("panTilt set pan=\(pan) tilt=\(tilt)")
+    }
+
+    private func runCameraPower(arguments: [String]) throws {
+        let options = try CameraPowerOptions.parse(arguments)
+        let controller = UVCController(vendorID: options.vendorID, productID: options.productID)
+
+        switch options.action {
+        case .status:
+            let status = try controller.readOBSBOTRunStatus()
+            print("powerStatus=\(status)")
+        case .toggle:
+            let result = try controller.toggleOBSBOTRunStatus()
+            print("power \(result.previous) -> \(result.next)")
+        case .wake:
+            let previous = try controller.readOBSBOTRunStatus()
+            try controller.setOBSBOTRunStatus(.run)
+            print("power \(previous) -> run")
+        case .sleep:
+            let previous = try controller.readOBSBOTRunStatus()
+            try controller.setOBSBOTRunStatus(.sleep)
+            print("power \(previous) -> sleep")
+        }
+    }
+
+    private func runCameraXUGet(arguments: [String]) throws {
+        let options = try CameraXUGetOptions.parse(arguments)
+        let controller = UVCController(vendorID: options.vendorID, productID: options.productID)
+        guard let unitID = options.unitID else {
+            throw CLIError("camera-xu-get requires --unit")
+        }
+        guard let selector = options.selector else {
+            throw CLIError("camera-xu-get requires --selector")
+        }
+
+        if let info = try? controller.readExtensionUnitInfo(unitID: unitID, selector: selector) {
+            print("info=\(formatByte(info)) \(extensionInfoDescription(info))")
+        }
+        if options.length == nil, let length = try? controller.readExtensionUnitLength(unitID: unitID, selector: selector) {
+            print("length=\(length)")
+        }
+
+        let bytes = try controller.readExtensionUnitCurrent(
+            unitID: unitID,
+            selector: selector,
+            length: options.length
+        )
+        print("value=\(hexBytes(bytes))")
+    }
+
+    private func runCameraXUDump(arguments: [String]) throws {
+        let options = try CameraXUDumpOptions.parse(arguments)
+        let controller = UVCController(vendorID: options.vendorID, productID: options.productID)
+        let probe = try controller.probe()
+
+        for unit in probe.extensionUnits {
+            print(
+                "extensionUnit id=\(unit.unitID) interface=\(unit.interfaceNumber) guid=\(unit.guidString)"
+            )
+            for selector in unit.advertisedSelectors {
+                let infoText: String
+                if let info = try? controller.readExtensionUnitInfo(unitID: unit.unitID, selector: selector) {
+                    infoText = "\(formatByte(info)) \(extensionInfoDescription(info))"
+                } else {
+                    infoText = "unreadable"
+                }
+
+                let length = try? controller.readExtensionUnitLength(unitID: unit.unitID, selector: selector)
+                let lengthText = length.map(String.init) ?? "unknown"
+                let valueText: String
+                if let length, length <= options.maxLength,
+                   let value = try? controller.readExtensionUnitCurrent(
+                    unitID: unit.unitID,
+                    selector: selector,
+                    length: length
+                   ) {
+                    valueText = hexBytes(value)
+                } else {
+                    valueText = "not-read"
+                }
+                print("  selector=\(selector) info=\(infoText) length=\(lengthText) value=\(valueText)")
+            }
+        }
     }
 
     private func writeButtonCapture(
@@ -495,6 +601,7 @@ struct CommandLineTool {
               - camera-probe
               - camera-zoom [--value <raw>|--delta <raw>]
               - camera-pan-tilt --pan <raw> --tilt <raw>
+              - camera-power [status|on|off]
             """
         )
     }
@@ -767,6 +874,159 @@ struct CameraPanTiltOptions {
     }
 }
 
+enum CameraPowerAction {
+    case toggle
+    case status
+    case wake
+    case sleep
+}
+
+struct CameraPowerOptions {
+    var vendorID: UInt16 = 0x3564
+    var productID: UInt16 = 0xFF02
+    var action: CameraPowerAction = .toggle
+
+    static func parse(_ arguments: [String]) throws -> CameraPowerOptions {
+        var options = CameraPowerOptions()
+        var actionWasSet = false
+        var index = 0
+        while index < arguments.count {
+            switch arguments[index] {
+            case "--vendor-id":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--vendor-id requires a value")
+                }
+                options.vendorID = try parseUInt16(arguments[index], option: "--vendor-id")
+            case "--product-id":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--product-id requires a value")
+                }
+                options.productID = try parseUInt16(arguments[index], option: "--product-id")
+            case "status":
+                try setAction(.status, on: &options, actionWasSet: &actionWasSet)
+            case "on", "wake", "run":
+                try setAction(.wake, on: &options, actionWasSet: &actionWasSet)
+            case "off", "sleep":
+                try setAction(.sleep, on: &options, actionWasSet: &actionWasSet)
+            default:
+                throw CLIError("unknown camera-power option: \(arguments[index])")
+            }
+            index += 1
+        }
+        return options
+    }
+
+    private static func setAction(
+        _ action: CameraPowerAction,
+        on options: inout CameraPowerOptions,
+        actionWasSet: inout Bool
+    ) throws {
+        guard !actionWasSet else {
+            throw CLIError("camera-power accepts one action")
+        }
+        options.action = action
+        actionWasSet = true
+    }
+}
+
+struct CameraXUGetOptions {
+    var vendorID: UInt16 = 0x3564
+    var productID: UInt16 = 0xFF02
+    var unitID: UInt8?
+    var selector: UInt8?
+    var length: Int?
+
+    static func parse(_ arguments: [String]) throws -> CameraXUGetOptions {
+        var options = CameraXUGetOptions()
+        var index = 0
+        while index < arguments.count {
+            switch arguments[index] {
+            case "--vendor-id":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--vendor-id requires a value")
+                }
+                options.vendorID = try parseUInt16(arguments[index], option: "--vendor-id")
+            case "--product-id":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--product-id requires a value")
+                }
+                options.productID = try parseUInt16(arguments[index], option: "--product-id")
+            case "--unit":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--unit requires a value")
+                }
+                options.unitID = try parseUInt8(arguments[index], option: "--unit")
+            case "--selector":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--selector requires a value")
+                }
+                options.selector = try parseUInt8(arguments[index], option: "--selector")
+            case "--length":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--length requires a value")
+                }
+                let length = try parseSignedInteger(arguments[index], option: "--length")
+                guard length > 0, length <= Int(UInt16.max) else {
+                    throw CLIError("--length must be between 1 and \(UInt16.max)")
+                }
+                options.length = length
+            default:
+                throw CLIError("unknown camera-xu-get option: \(arguments[index])")
+            }
+            index += 1
+        }
+        return options
+    }
+}
+
+struct CameraXUDumpOptions {
+    var vendorID: UInt16 = 0x3564
+    var productID: UInt16 = 0xFF02
+    var maxLength: Int = 128
+
+    static func parse(_ arguments: [String]) throws -> CameraXUDumpOptions {
+        var options = CameraXUDumpOptions()
+        var index = 0
+        while index < arguments.count {
+            switch arguments[index] {
+            case "--vendor-id":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--vendor-id requires a value")
+                }
+                options.vendorID = try parseUInt16(arguments[index], option: "--vendor-id")
+            case "--product-id":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--product-id requires a value")
+                }
+                options.productID = try parseUInt16(arguments[index], option: "--product-id")
+            case "--max-length":
+                index += 1
+                guard index < arguments.count else {
+                    throw CLIError("--max-length requires a value")
+                }
+                let maxLength = try parseSignedInteger(arguments[index], option: "--max-length")
+                guard maxLength > 0 else {
+                    throw CLIError("--max-length must be positive")
+                }
+                options.maxLength = maxLength
+            default:
+                throw CLIError("unknown camera-xu-dump option: \(arguments[index])")
+            }
+            index += 1
+        }
+        return options
+    }
+}
+
 struct ButtonMapCapture: Codable {
     var capturedAt: String
     var vendorID: String?
@@ -936,7 +1196,9 @@ private func dryRunActionDescription(for button: String) -> String {
         return "zoom(delta: \(zoomStep))"
     case "Zoom Out":
         return "zoom(delta: -\(zoomStep))"
-    case "On/Off", "Choose Device 1", "Choose Device 2", "Choose Device 3", "Choose Device 4",
+    case "On/Off":
+        return "powerToggle"
+    case "Choose Device 1", "Choose Device 2", "Choose Device 3", "Choose Device 4",
          "Laser / Whiteboard click", "Laser / Whiteboard double-click", "Laser / Whiteboard hold",
          "Hyperlink click", "Hyperlink double-click", "Hyperlink hold",
          "Page Up click", "Page Up hold", "Page Down click", "Page Down hold":
@@ -1263,6 +1525,40 @@ private func escapedTerminalBytes(_ bytes: [UInt8]) -> String {
             "\\x" + String(byte, radix: 16, uppercase: true)
         }
     }.joined()
+}
+
+private func hexBytes(_ bytes: [UInt8]) -> String {
+    bytes.map(formatByte).joined(separator: " ")
+}
+
+private func formatByte(_ byte: UInt8) -> String {
+    let raw = String(byte, radix: 16, uppercase: true)
+    return "0x" + String(repeating: "0", count: max(0, 2 - raw.count)) + raw
+}
+
+private func extensionInfoDescription(_ info: UInt8) -> String {
+    var flags: [String] = []
+    if (info & 0x01) != 0 {
+        flags.append("GET")
+    }
+    if (info & 0x02) != 0 {
+        flags.append("SET")
+    }
+    if (info & 0x04) != 0 {
+        flags.append("disabled")
+    }
+    if (info & 0x08) != 0 {
+        flags.append("autoupdate")
+    }
+    return flags.isEmpty ? "(no flags)" : "(\(flags.joined(separator: ",")))"
+}
+
+private func parseUInt8(_ text: String, option: String) throws -> UInt8 {
+    let value = try parseInteger(text)
+    guard let narrowed = UInt8(exactly: value) else {
+        throw CLIError("\(option) must fit in 8 bits")
+    }
+    return narrowed
 }
 
 private func parseUInt16(_ text: String, option: String) throws -> UInt16 {

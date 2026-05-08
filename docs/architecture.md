@@ -2,16 +2,9 @@
 
 `obsBotRemote` is a native macOS remote-control daemon in progress. It listens for OBSBOT Smart Remote 2 HID input and translates known button presses into camera controls for an OBSBOT Tiny 2.
 
-## Project Boundary
+## Project Shape
 
-The final product should be a single Swift-built CLI/daemon that depends on Apple system frameworks, not on Python or source-built helper tools.
-
-Out of scope:
-
-- Python runtime, `pynput`, or uv-managed environments;
-- user-installed `uvc-util`;
-- libusb/libuvc unless direct IOKit control proves impossible;
-- Qt, camera preview, virtual camera output, or OBSBOT SDK integration.
+The project is a Swift CLI lab bench that is growing into a small macOS daemon. It uses Apple system frameworks for remote input and camera control.
 
 ## Runtime Shape
 
@@ -37,7 +30,7 @@ IOKit UVC control transfer
 OBSBOT Tiny 2
 ```
 
-The current Swift CLI is the lab bench. It lists USB devices, sniffs HID events, decodes live remote input, probes UVC descriptors, and can issue native UVC `GET_CUR`/`SET_CUR` requests for `pan-tilt-abs` and `zoom-abs`.
+The current Swift CLI is the lab bench. It lists USB devices, sniffs HID events, decodes live remote input, probes UVC descriptors, and can issue native UVC `GET_CUR`/`SET_CUR` requests for `pan-tilt-abs`, `zoom-abs`, and OBSBOT vendor extension-unit controls.
 
 ## Components
 
@@ -59,6 +52,8 @@ The current Swift CLI is the lab bench. It lists USB devices, sniffs HID events,
 - `camera-probe` finds UVC VideoControl interfaces and camera-terminal controls;
 - `camera-zoom` reads or writes `zoom-abs`;
 - `camera-pan-tilt` writes `pan-tilt-abs`;
+- `camera-power` reads or toggles OBSBOT run/sleep state through the vendor extension unit;
+- `camera-xu-get` and `camera-xu-dump` inspect UVC extension-unit selectors;
 - `uvc-controls` reports the native UVC implementation status.
 
 ## Lab Bench Strategy
@@ -71,9 +66,17 @@ swift run obsbot-remote devices
 swift run obsbot-remote map-buttons
 swift run obsbot-remote listen
 swift run obsbot-remote camera-probe
+swift run obsbot-remote camera-power status
 ```
 
-No external camera-control binary should be required. `uvc-util` remains useful as a reference implementation because it demonstrates direct IOKit UVC control, but users should not have to install it.
+## External References
+
+These references informed the current UVC extension-unit work:
+
+- [OBSBOT SDK](https://www.obsbot.com/sdk): documents SDK support for universal sleep/wake and Tiny-series device sleep features.
+- [aaronsb/obsbot-camera-control](https://github.com/aaronsb/obsbot-camera-control): Linux controller with bundled OBSBOT SDK headers and UVC extension-unit notes.
+- [cgevans/tiny2](https://github.com/cgevans/tiny2): Linux Tiny 2 controller that writes 60-byte OBSBOT vendor packets through UVC extension unit 2 selector 2.
+- [samliddicott/meet4k](https://github.com/samliddicott/meet4k): documents OBSBOT selector data as RPC-like state rather than simple write-back memory.
 
 ## Safety Model
 

@@ -97,3 +97,11 @@ keyboard.leftControl down
 ```
 
 That means some camera buttons may be encoded as modifier-plus-key shortcuts rather than unique HID usages.
+
+`On/Off` is decoded as `powerToggle`. The matching camera-side lab command is:
+
+```bash
+swift run obsbot-remote camera-power
+```
+
+`listen` still prints dry-run actions. Use `camera-power status`, `camera-power on`, and `camera-power off` to validate the OBSBOT vendor sleep/wake control before wiring the live remote loop to execute actions.
