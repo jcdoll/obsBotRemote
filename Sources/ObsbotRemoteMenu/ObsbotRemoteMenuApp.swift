@@ -79,7 +79,7 @@ private final class RemoteControlRunner: ObservableObject {
         }
 
         do {
-            appendSystemLog("starting live remote control")
+            appendSystemLog("Starting remote control.")
             try session.start()
             self.session = session
             isRunning = true
@@ -98,7 +98,7 @@ private final class RemoteControlRunner: ObservableObject {
         }
 
         status = "Stopping"
-        appendSystemLog("stopping remote control")
+        appendSystemLog("Stopping remote control.")
         session.stop()
         self.session = nil
         isRunning = false

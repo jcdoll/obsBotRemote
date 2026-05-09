@@ -77,10 +77,9 @@ final class RemoteHotKeyControlSession: @unchecked Sendable {
             }
 
             running = true
-            log("Live remote control")
-            log("Registered \(hotKeyRefs.count) remote shortcut(s) from \(buttonCaptureURL.path).")
+            log("Remote control ready. \(hotKeyRefs.count) remote buttons active.")
             for failure in failures {
-                log("\(failure.0) -> shortcut registration failed: \(failure.1)")
+                log("\(failure.0): could not activate shortcut (\(failure.1)).")
             }
         } catch {
             stop()
@@ -107,7 +106,7 @@ final class RemoteHotKeyControlSession: @unchecked Sendable {
 
         if running {
             running = false
-            log("remote control stopped")
+            log("Remote control stopped.")
         }
     }
 
@@ -166,11 +165,11 @@ final class RemoteHotKeyControlSession: @unchecked Sendable {
 
         do {
             let result = try remoteCameraActionDescription(for: button, controller: controller)
-            log("\(button) -> \(result)")
+            log(userFacingActionLog(button: button, result: result))
         } catch let error as UVCRequestError {
-            log("\(button) -> error: \(error.description)")
+            log("\(button): camera error: \(error.description)")
         } catch {
-            log("\(button) -> error: \(error)")
+            log("\(button): error: \(error)")
         }
     }
 }
@@ -218,6 +217,62 @@ private func remoteHotKeySpecs(from captures: [ButtonCapture]) -> [RemoteHotKeyS
     }
 
     return specs
+}
+
+private func userFacingActionLog(button: String, result: String) -> String {
+    switch button {
+    case "On/Off":
+        return "On/Off: \(powerActionDescription(from: result))"
+    case "Gimbal Up":
+        return "Gimbal Up: moved camera up."
+    case "Gimbal Down":
+        return "Gimbal Down: moved camera down."
+    case "Gimbal Left":
+        return "Gimbal Left: moved camera left."
+    case "Gimbal Right":
+        return "Gimbal Right: moved camera right."
+    case "Gimbal Reset":
+        return "Gimbal Reset: centered camera."
+    case "Zoom In":
+        return "Zoom In: zoomed in."
+    case "Zoom Out":
+        return "Zoom Out: zoomed out."
+    case "Track":
+        return "Track: \(aiModeActionDescription(label: "human tracking", result: result))"
+    case "Close-up":
+        return "Close-up: \(aiModeActionDescription(label: "close-up tracking", result: result))"
+    case "Hand Track":
+        return "Hand Track: \(aiModeActionDescription(label: "hand tracking", result: result))"
+    case "Desk Mode":
+        return "Desk Mode: \(aiModeActionDescription(label: "desk mode", result: result))"
+    case "Choose Device 1", "Choose Device 2", "Choose Device 3", "Choose Device 4":
+        return "\(button): no camera action assigned."
+    default:
+        if result == "ignored" {
+            return "\(button): ignored."
+        }
+        if result == "unsupported" {
+            return "\(button): unsupported."
+        }
+        return "\(button): \(result)"
+    }
+}
+
+private func powerActionDescription(from result: String) -> String {
+    if result.contains("sleep -> run") {
+        return "woke camera."
+    }
+    if result.contains("run -> sleep") {
+        return "put camera to sleep."
+    }
+    return "toggled camera power."
+}
+
+private func aiModeActionDescription(label: String, result: String) -> String {
+    if result.hasSuffix(" -> off") {
+        return "turned \(label) off."
+    }
+    return "turned \(label) on."
 }
 
 private func remoteHotKeyShortcut(from events: [HIDEventRecord]) -> (keyCode: UInt32, modifiers: UInt32)? {
