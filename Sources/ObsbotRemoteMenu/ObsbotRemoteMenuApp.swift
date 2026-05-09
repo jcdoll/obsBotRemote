@@ -37,6 +37,8 @@ private final class MenuAppDelegate: NSObject, NSApplicationDelegate {
         popover.behavior = .transient
         popover.contentSize = NSSize(width: 360, height: 420)
         popover.contentViewController = NSHostingController(rootView: RemotePopoverView(runner: runner))
+
+        runner.start()
     }
 
     func applicationWillTerminate(_ notification: Notification) {

@@ -66,7 +66,7 @@ The Swift CLI lists USB devices, sniffs HID events, decodes live remote input, p
 - `camera-xu-get` and `camera-xu-dump` inspect UVC extension-unit selectors;
 - `uvc-controls` reports the native UVC implementation status.
 
-`ObsbotRemoteMenu` owns the menu bar app. It runs as an accessory app, shows a menu bar popover, starts/stops live control, displays logs, and registers enabled remote shortcuts from `Resources/remote-button-capture.json` as macOS global hotkeys.
+`ObsbotRemoteMenu` owns the menu bar app. It runs as an accessory app, starts live control on launch, shows a menu bar popover, stops/restarts live control, displays logs, and registers enabled remote shortcuts from `Resources/remote-button-capture.json` as macOS global hotkeys.
 
 CLI implementation is split by concern:
 

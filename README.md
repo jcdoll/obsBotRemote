@@ -11,7 +11,7 @@ Current status:
 - standard UVC zoom and pan/tilt lab commands are working;
 - OBSBOT vendor extension-unit probing is working;
 - OBSBOT sleep/wake is working through `control`; AI tracking mode buttons are mapped for testing;
-- the menu bar app can start/stop live control and show logs.
+- the menu bar app starts live control on launch and can stop/restart control from the menu.
 
 ## Setup
 
@@ -39,7 +39,7 @@ scripts/build-menu-app.sh
 open ".build/OBSBOT Remote.app"
 ```
 
-Click the menu bar video icon to start or stop live remote control, open the log, or quit. The menu app registers the enabled remote shortcuts from `Resources/remote-button-capture.json` as macOS global hotkeys and does not open the remote HID device.
+The menu app starts live remote control when launched. Click the menu bar video icon to stop or restart live control, open the log, or quit. The menu app registers the enabled remote shortcuts from `Resources/remote-button-capture.json` as macOS global hotkeys and does not open the remote HID device.
 
 Remote discovery and mapping:
 
