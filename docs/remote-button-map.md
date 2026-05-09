@@ -70,31 +70,37 @@ Use foreground live control when you want the remote to move the camera:
 swift run obsbot-remote control
 ```
 
-| Button | HID events | Notes |
+| Button | Keystroke | Status |
 |---|---|---|
-| On/Off |  |  |
-| Choose Device 1 |  |  |
-| Choose Device 2 |  |  |
-| Choose Device 3 |  |  |
-| Choose Device 4 |  |  |
-| Preset P1 |  |  |
-| Preset P2 |  |  |
-| Preset P3 |  |  |
-| Gimbal Up |  |  |
-| Gimbal Down |  |  |
-| Gimbal Left |  |  |
-| Gimbal Right |  |  |
-| Gimbal Reset |  |  |
-| Zoom In |  |  |
-| Zoom Out |  |  |
-| Track |  |  |
-| Close-up |  |  |
-| Hand Track |  |  |
-| Laser / Whiteboard |  | test click, double-click, and hold separately |
-| Desk Mode |  |  |
-| Hyperlink |  | test click, double-click, and hold separately |
-| Page Up |  | test click and hold separately |
-| Page Down |  | test click and hold separately |
+| On/Off | Ctrl+Option+T | enabled |
+| Choose Device 1 | Ctrl+Option+- | enabled |
+| Choose Device 2 | Ctrl+Option+= | enabled |
+| Choose Device 3 | Ctrl+Option+, | enabled |
+| Choose Device 4 | Ctrl+Option+. | enabled |
+| Preset P1 | Ctrl+Option+Q | enabled |
+| Preset P2 | Ctrl+Option+E | enabled |
+| Preset P3 | Ctrl+Option+R | enabled |
+| Gimbal Up | Ctrl+Option+Up | enabled |
+| Gimbal Down | Ctrl+Option+Down | enabled |
+| Gimbal Left | Ctrl+Option+Left | enabled |
+| Gimbal Right | Ctrl+Option+Right | enabled |
+| Gimbal Reset | Ctrl+Option+0 | enabled |
+| Zoom In | Ctrl+Option+F | enabled |
+| Zoom Out | Ctrl+Option+H | enabled |
+| Track | Ctrl+Option+L | enabled |
+| Close-up | Ctrl+Option+[ | enabled |
+| Hand Track | Ctrl+Option+] | enabled |
+| Laser / Whiteboard click | Ctrl+Option+Backslash | disabled |
+| Laser / Whiteboard double-click | Ctrl+Option+/ | disabled |
+| Laser / Whiteboard hold | repeated Ctrl+Option+Backslash | disabled |
+| Desk Mode | Ctrl+Option+; | enabled |
+| Hyperlink click | Tab | disabled |
+| Hyperlink double-click | Return | disabled |
+| Hyperlink hold | Command+Tab | disabled |
+| Page Up click | PageDown | disabled |
+| Page Up hold | B | disabled |
+| Page Down click | PageUp | disabled |
+| Page Down hold | PageUp | disabled |
 
 The first observed sample for a gimbal arrow looked like a keyboard combo:
 
@@ -115,4 +121,4 @@ swift run obsbot-remote camera-power
 `listen` prints dry-run actions. `control` executes supported camera actions and prints what it did.
 Holding a gimbal direction button is handled through the remote's repeated terminal arrow sequence in non-seize mode.
 Track, Close-up, Hand Track, and Desk Mode are mapped to OBSBOT AI mode toggles through extension unit 2 selector 6.
-Hyperlink and Page Up/Down controls are captured but disabled because they emit plain presentation keys like Tab, Return, Command-Tab, PageUp, and PageDown.
+Laser / Whiteboard, Hyperlink, and Page Up/Down controls are captured but disabled because they are not part of camera control and can emit presentation keys.

@@ -1359,6 +1359,7 @@
     },
     {
       "button" : "Laser \/ Whiteboard click",
+      "enabled" : false,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -1434,6 +1435,7 @@
     },
     {
       "button" : "Laser \/ Whiteboard double-click",
+      "enabled" : false,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -1509,6 +1511,7 @@
     },
     {
       "button" : "Laser \/ Whiteboard hold",
+      "enabled" : false,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
