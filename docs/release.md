@@ -6,6 +6,8 @@ References:
 
 - [Apple Developer ID](https://developer.apple.com/support/developer-id/)
 - [Signing Mac software with Developer ID](https://developer.apple.com/developer-id/)
+- [Developer ID intermediate certificate updates](https://developer.apple.com/support/developer-id-intermediate-certificate/)
+- [Apple Certificate Authority](https://www.apple.com/certificateauthority/)
 - [Notarizing macOS software before distribution](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)
 - [Customizing the notarization workflow](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow)
 - [Homebrew Cask Cookbook](https://docs.brew.sh/Cask-Cookbook)
@@ -70,6 +72,21 @@ Expected shape:
 
 ```text
 Developer ID Application: ORGANIZATION NAME (TEAMID)
+```
+
+If Keychain Access shows the Developer ID Application certificate with the private key nested under it, but the certificate is marked **not trusted** and `security find-identity` reports `0 valid identities found`, install Apple's newer Developer ID G2 intermediate certificate:
+
+```bash
+curl -fsSLo /tmp/DeveloperIDG2CA.cer https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer
+open /tmp/DeveloperIDG2CA.cer
+```
+
+If Keychain Access asks where to add the Apple intermediate certificate, choose **System** if you have admin rights. The **login** keychain is acceptable if System is not available. Do not choose iCloud.
+
+Then verify again:
+
+```bash
+security find-identity -v -p codesigning | grep "Developer ID Application"
 ```
 
 ## One-Time Notary Setup
