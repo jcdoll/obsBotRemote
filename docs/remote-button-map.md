@@ -20,6 +20,8 @@ swift run obsbot-remote map-buttons --reset
 
 The mapper uses normal listening by default because macOS denied exclusive seizure for the local Terminal-launched process. Remote keypresses may reach the focused app during mapping.
 
+Captured buttons include an `enabled` field. Disabled captures stay in the keymap for reference but are ignored by live matching.
+
 You can still test exclusive capture explicitly:
 
 ```bash
@@ -113,3 +115,4 @@ swift run obsbot-remote camera-power
 `listen` prints dry-run actions. `control` executes supported camera actions and prints what it did.
 Holding a gimbal direction button is handled through the remote's repeated terminal arrow sequence in non-seize mode.
 Track, Close-up, Hand Track, and Desk Mode are mapped to OBSBOT AI mode toggles through extension unit 2 selector 6.
+Hyperlink and Page Up/Down controls are captured but disabled because they emit plain presentation keys like Tab, Return, Command-Tab, PageUp, and PageDown.

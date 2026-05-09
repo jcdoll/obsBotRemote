@@ -1,5 +1,6 @@
-import ObsbotRemoteCore
 import Foundation
+import ObsbotRemoteControl
+import ObsbotRemoteCore
 
 func expect(_ condition: @autoclosure () -> Bool, _ message: String) {
     if !condition() {
@@ -33,6 +34,43 @@ expect(recalled == CameraState(pan: 10, tilt: 20, zoom: 30), "preset recall")
 expect(expectNoThrow("parse decimal") { try parseInteger("1234") } == 1234, "parse decimal")
 expect(expectNoThrow("parse hex") { try parseInteger("0x1A2B") } == 0x1A2B, "parse hex")
 expect(formatHex(0x2A) == "0x002A", "hex formatting")
+
+let legacyButtonJSON = """
+{
+  "button": "Legacy",
+  "events": [],
+  "skipped": false
+}
+""".data(using: .utf8)!
+let legacyButton = expectNoThrow("decode legacy button capture") {
+    try JSONDecoder().decode(ButtonCapture.self, from: legacyButtonJSON)
+}
+expect(legacyButton.enabled, "legacy button capture defaults enabled")
+
+let disabledButton = ButtonCapture(
+    button: "Disabled",
+    events: [
+        HIDEventRecord(
+            usagePage: 7,
+            usage: 40,
+            value: 1,
+            state: "down",
+            name: "keyboard.return",
+            timestamp: 0
+        ),
+    ],
+    terminalBytes: nil,
+    terminalEscaped: nil,
+    skipped: false,
+    enabled: false
+)
+let disabledMatcher = RemoteButtonMatcher(captures: [disabledButton])
+let disabledInput = InputCapture(hidEvents: disabledButton.events, terminalBytes: [])
+if case .unknown = disabledMatcher.match(disabledInput) {
+    // expected
+} else {
+    expect(false, "disabled button capture does not match")
+}
 
 let uvcDescriptor = Data([
     9, 2, 62, 0, 1, 1, 0, 0x80, 50,

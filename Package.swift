@@ -53,7 +53,7 @@ let package = Package(
         ),
         .executableTarget(
             name: "ObsbotRemoteSelfTest",
-            dependencies: ["ObsbotRemoteCore"]
+            dependencies: ["ObsbotRemoteCore", "ObsbotRemoteControl"]
         ),
     ]
 )

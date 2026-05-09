@@ -29,19 +29,41 @@ public struct ButtonCapture: Codable {
     public var terminalBytes: [UInt8]?
     public var terminalEscaped: String?
     public var skipped: Bool
+    public var enabled: Bool
 
     public init(
         button: String,
         events: [HIDEventRecord],
         terminalBytes: [UInt8]?,
         terminalEscaped: String?,
-        skipped: Bool
+        skipped: Bool,
+        enabled: Bool = true
     ) {
         self.button = button
         self.events = events
         self.terminalBytes = terminalBytes
         self.terminalEscaped = terminalEscaped
         self.skipped = skipped
+        self.enabled = enabled
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case button
+        case events
+        case terminalBytes
+        case terminalEscaped
+        case skipped
+        case enabled
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        button = try container.decode(String.self, forKey: .button)
+        events = try container.decode([HIDEventRecord].self, forKey: .events)
+        terminalBytes = try container.decodeIfPresent([UInt8].self, forKey: .terminalBytes)
+        terminalEscaped = try container.decodeIfPresent(String.self, forKey: .terminalEscaped)
+        skipped = try container.decode(Bool.self, forKey: .skipped)
+        enabled = try container.decodeIfPresent(Bool.self, forKey: .enabled) ?? true
     }
 }
 
@@ -102,7 +124,7 @@ public struct RemoteButtonMatcher {
     private var hidMatches: [HIDSignature: [String]] = [:]
 
     public init(captures: [ButtonCapture]) {
-        for capture in captures where !capture.skipped {
+        for capture in captures where !capture.skipped && capture.enabled {
             if let terminalBytes = capture.terminalBytes, !terminalBytes.isEmpty {
                 terminalMatches[terminalBytes] = capture.button
             }
@@ -144,7 +166,8 @@ public func buttonCaptureSummary(_ capture: ButtonCapture) -> String {
         return "(skipped)"
     }
     let terminalCount = capture.terminalBytes?.count ?? 0
-    return "(\(capture.events.count) HID event(s), \(terminalCount) terminal byte(s))"
+    let status = capture.enabled ? "enabled" : "disabled"
+    return "(\(capture.events.count) HID event(s), \(terminalCount) terminal byte(s), \(status))"
 }
 
 public func hidSignatureDescription(_ events: [HIDEventRecord]) -> String {

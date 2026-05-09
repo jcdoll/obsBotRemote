@@ -7,7 +7,7 @@ The project is Swift-first. It uses Apple system frameworks directly: IOHIDManag
 Current status:
 
 - remote button capture, dry-run decoding, and foreground live control are working;
-- the default remote button keymap lives in `Resources/remote-button-capture.json`;
+- the default remote button keymap lives in `Resources/remote-button-capture.json` and supports disabled captures;
 - standard UVC zoom and pan/tilt lab commands are working;
 - OBSBOT vendor extension-unit probing is working;
 - OBSBOT sleep/wake is working through `control`; AI tracking mode buttons are mapped for testing;

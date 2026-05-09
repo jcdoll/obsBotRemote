@@ -1665,6 +1665,7 @@
     },
     {
       "button" : "Hyperlink click",
+      "enabled" : false,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -1707,6 +1708,7 @@
     },
     {
       "button" : "Hyperlink double-click",
+      "enabled" : false,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -1749,6 +1751,7 @@
     },
     {
       "button" : "Hyperlink hold",
+      "enabled" : false,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -1803,6 +1806,7 @@
     },
     {
       "button" : "Page Up click",
+      "enabled" : false,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -1841,6 +1845,7 @@
     },
     {
       "button" : "Page Up hold",
+      "enabled" : false,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -1883,6 +1888,7 @@
     },
     {
       "button" : "Page Down click",
+      "enabled" : false,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -1921,6 +1927,7 @@
     },
     {
       "button" : "Page Down hold",
+      "enabled" : false,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
