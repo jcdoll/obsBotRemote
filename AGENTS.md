@@ -10,6 +10,7 @@ Current status:
 - standard UVC `zoom-abs` and `pan-tilt-abs` lab commands are implemented through IOUSBLib control transfers;
 - UVC extension-unit parsing and `camera-xu-get`/`camera-xu-dump` are implemented;
 - OBSBOT run/sleep state and AI mode toggles are implemented through `control`;
+- the menu bar app includes a camera controls window for wake/sleep, pan/tilt, zoom, AI modes, and shared step sizes;
 - `listen` is dry-run; `control` is live camera control.
 
 ## Repository Layout
@@ -19,7 +20,7 @@ Current status:
 - `Sources/ObsbotRemoteCore/` -- testable core types, USB discovery, camera state, UVC parsing, OBSBOT vendor protocol, and UVC control facade.
 - `Sources/ObsbotRemoteControl/` -- shared remote button models, HID capture helpers, camera actions, and CLI live-control runtime.
 - `Sources/ObsbotRemoteCLI/` -- CLI lab bench split by command dispatch, options, HID input, terminal input, button mapping, and camera commands.
-- `Sources/ObsbotRemoteMenu/` -- menu bar app that registers remote shortcuts, starts/stops live remote control, and displays logs.
+- `Sources/ObsbotRemoteMenu/` -- menu bar app that registers remote shortcuts, starts/stops live remote control, opens camera controls, and displays logs.
 - `Sources/ObsbotRemoteSelfTest/` -- no-dependency self-test executable for bare Command Line Tools installs.
 - `docs/` -- architecture and operational notes.
 - `docs/release.md` -- Developer ID, notarization, GitHub release, and Homebrew cask process.

@@ -30,22 +30,29 @@ enum RemoteHotKeyControlSessionError: Error, CustomStringConvertible {
 final class RemoteHotKeyControlSession: @unchecked Sendable {
   fileprivate nonisolated(unsafe) static var activeSession: RemoteHotKeyControlSession?
   fileprivate static let hotKeySignature = fourCharacterCode("OBSR")
-  private static let actionQueue = DispatchQueue(label: "OBSBOT Remote HotKey Actions")
   private static let repeatInitialDelay: TimeInterval = 0.25
   private static let repeatInterval: TimeInterval = 0.18
 
   private let buttonCaptureURL: URL
+  private let coordinator: CameraControlCoordinator
   private let log: @Sendable (String) -> Void
 
-  private var controller: UVCController?
   private var buttonByID: [UInt32: String] = [:]
   private var hotKeyRefs: [EventHotKeyRef] = []
   private var repeatTimers: [UInt32: DispatchSourceTimer] = [:]
   private var handlerRef: EventHandlerRef?
+  private let stateLock = NSLock()
+  private var actionGeneration: UInt64 = 0
+  private var acceptingActions = false
   private var running = false
 
-  init(buttonCaptureURL: URL, log: @escaping @Sendable (String) -> Void) {
+  init(
+    buttonCaptureURL: URL,
+    coordinator: CameraControlCoordinator,
+    log: @escaping @Sendable (String) -> Void
+  ) {
     self.buttonCaptureURL = buttonCaptureURL
+    self.coordinator = coordinator
     self.log = log
   }
 
@@ -61,9 +68,7 @@ final class RemoteHotKeyControlSession: @unchecked Sendable {
     let capture = try JSONDecoder().decode(ButtonMapCapture.self, from: data)
     let specs = remoteHotKeySpecs(from: capture.buttons)
 
-    let controller = UVCController()
     Self.activeSession = self
-    self.controller = controller
 
     do {
       try installHandler()
@@ -80,6 +85,7 @@ final class RemoteHotKeyControlSession: @unchecked Sendable {
       }
 
       running = true
+      beginAcceptingActions()
       log("Remote control ready. \(hotKeyRefs.count) remote buttons active.")
       for failure in failures {
         log("\(failure.0): could not activate shortcut (\(failure.1)).")
@@ -91,6 +97,7 @@ final class RemoteHotKeyControlSession: @unchecked Sendable {
   }
 
   func stop() {
+    invalidatePendingActions()
     stopRepeatingAllHotKeys()
 
     for ref in hotKeyRefs {
@@ -104,7 +111,6 @@ final class RemoteHotKeyControlSession: @unchecked Sendable {
       self.handlerRef = nil
     }
 
-    controller = nil
     if Self.activeSession === self {
       Self.activeSession = nil
     }
@@ -167,8 +173,9 @@ final class RemoteHotKeyControlSession: @unchecked Sendable {
     }
 
     guard isRepeatableRemoteButton(button) else {
-      Self.actionQueue.async { [weak self] in
-        self?.runCameraAction(for: button)
+      let generation = currentActionGeneration()
+      coordinator.commandQueue.async { [weak self] in
+        self?.runCameraAction(for: button, generation: generation)
       }
       return
     }
@@ -177,24 +184,25 @@ final class RemoteHotKeyControlSession: @unchecked Sendable {
       return
     }
 
-    Self.actionQueue.async { [weak self] in
-      self?.runCameraAction(for: button)
+    let generation = currentActionGeneration()
+    coordinator.commandQueue.async { [weak self] in
+      self?.runCameraAction(for: button, generation: generation)
     }
-    startRepeatingHotKey(id: id, button: button)
+    startRepeatingHotKey(id: id, button: button, generation: generation)
   }
 
   fileprivate func handleHotKeyReleased(id: UInt32) {
     stopRepeatingHotKey(id: id)
   }
 
-  private func startRepeatingHotKey(id: UInt32, button: String) {
-    let timer = DispatchSource.makeTimerSource(queue: Self.actionQueue)
+  private func startRepeatingHotKey(id: UInt32, button: String, generation: UInt64) {
+    let timer = DispatchSource.makeTimerSource(queue: coordinator.commandQueue)
     timer.schedule(
       deadline: .now() + Self.repeatInitialDelay,
       repeating: Self.repeatInterval
     )
     timer.setEventHandler { [weak self] in
-      self?.runCameraAction(for: button)
+      self?.runCameraAction(for: button, generation: generation)
     }
     repeatTimers[id] = timer
     timer.resume()
@@ -214,19 +222,45 @@ final class RemoteHotKeyControlSession: @unchecked Sendable {
     repeatTimers.removeAll()
   }
 
-  private func runCameraAction(for button: String) {
-    guard let controller else {
+  private func runCameraAction(for button: String, generation: UInt64) {
+    guard isCurrentActionGeneration(generation) else {
       return
     }
 
     do {
-      let result = try remoteCameraActionDescription(for: button, controller: controller)
+      let result = try coordinator.performRemoteButtonOnCommandQueue(button)
       log(userFacingActionLog(button: button, result: result))
     } catch let error as UVCRequestError {
       log("\(button): camera error: \(error.description)")
     } catch {
       log("\(button): error: \(error)")
     }
+  }
+
+  private func invalidatePendingActions() {
+    stateLock.lock()
+    acceptingActions = false
+    actionGeneration &+= 1
+    stateLock.unlock()
+  }
+
+  private func beginAcceptingActions() {
+    stateLock.lock()
+    acceptingActions = true
+    actionGeneration &+= 1
+    stateLock.unlock()
+  }
+
+  private func currentActionGeneration() -> UInt64 {
+    stateLock.lock()
+    defer { stateLock.unlock() }
+    return actionGeneration
+  }
+
+  private func isCurrentActionGeneration(_ generation: UInt64) -> Bool {
+    stateLock.lock()
+    defer { stateLock.unlock() }
+    return acceptingActions && generation == actionGeneration
   }
 }
 

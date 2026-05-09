@@ -13,32 +13,32 @@ public struct HeldRemoteInput {
 
 public func remoteCameraActionDescription(
   for button: String,
-  controller: UVCController
+  controller: UVCController,
+  panTiltStep: Int32 = defaultRemotePanTiltStep,
+  zoomStep: Int = defaultRemoteZoomStep,
+  zoomRange: UVCZoomRange? = nil,
+  panTiltRange: UVCPanTiltRange? = nil
 ) throws -> String {
   switch button {
   case "On/Off":
     let result = try controller.toggleOBSBOTRunStatus()
     return "power \(result.previous) -> \(result.next)"
   case "Zoom In":
-    let current = try controller.readZoom()
-    let next = max(0, current + defaultRemoteZoomStep)
-    try controller.setZoom(next)
-    return "zoom \(current) -> \(next)"
+    return try moveZoom(controller: controller, delta: zoomStep, range: zoomRange)
   case "Zoom Out":
-    let current = try controller.readZoom()
-    let next = max(0, current - defaultRemoteZoomStep)
-    try controller.setZoom(next)
-    return "zoom \(current) -> \(next)"
+    return try moveZoom(controller: controller, delta: -zoomStep, range: zoomRange)
   case "Gimbal Up":
-    return try movePanTilt(controller: controller, panDelta: 0, tiltDelta: defaultRemotePanTiltStep)
+    return try movePanTilt(
+      controller: controller, panDelta: 0, tiltDelta: panTiltStep, range: panTiltRange)
   case "Gimbal Down":
     return try movePanTilt(
-      controller: controller, panDelta: 0, tiltDelta: -defaultRemotePanTiltStep)
+      controller: controller, panDelta: 0, tiltDelta: -panTiltStep, range: panTiltRange)
   case "Gimbal Left":
     return try movePanTilt(
-      controller: controller, panDelta: -defaultRemotePanTiltStep, tiltDelta: 0)
+      controller: controller, panDelta: -panTiltStep, tiltDelta: 0, range: panTiltRange)
   case "Gimbal Right":
-    return try movePanTilt(controller: controller, panDelta: defaultRemotePanTiltStep, tiltDelta: 0)
+    return try movePanTilt(
+      controller: controller, panDelta: panTiltStep, tiltDelta: 0, range: panTiltRange)
   case "Gimbal Reset":
     try controller.setPanTilt(pan: 0, tilt: 0)
     return "center"
@@ -92,13 +92,35 @@ public func isReleaseOnlyInput(_ input: InputCapture) -> Bool {
 private func movePanTilt(
   controller: UVCController,
   panDelta: Int32,
-  tiltDelta: Int32
+  tiltDelta: Int32,
+  range providedRange: UVCPanTiltRange?
 ) throws -> String {
   let current = try controller.readPanTilt()
-  let nextPan = clampedInt32(Int64(current.pan) + Int64(panDelta))
-  let nextTilt = clampedInt32(Int64(current.tilt) + Int64(tiltDelta))
+  let range = try providedRange ?? controller.readPanTiltRange()
+  let nextPan = clampedInt32(
+    current.pan,
+    plus: panDelta,
+    minimum: range.minimum.pan,
+    maximum: range.maximum.pan
+  )
+  let nextTilt = clampedInt32(
+    current.tilt,
+    plus: tiltDelta,
+    minimum: range.minimum.tilt,
+    maximum: range.maximum.tilt
+  )
   try controller.setPanTilt(pan: nextPan, tilt: nextTilt)
   return "panTilt pan \(current.pan) -> \(nextPan), tilt \(current.tilt) -> \(nextTilt)"
+}
+
+private func moveZoom(controller: UVCController, delta: Int, range providedRange: UVCZoomRange?)
+  throws -> String
+{
+  let current = try controller.readZoom()
+  let range = try providedRange ?? controller.readZoomRange()
+  let next = max(range.minimum, min(current + delta, range.maximum))
+  try controller.setZoom(next)
+  return "zoom \(current) -> \(next)"
 }
 
 private func toggleAIMode(
@@ -109,8 +131,12 @@ private func toggleAIMode(
   return "aiMode \(result.previous) -> \(result.next)"
 }
 
-private func clampedInt32(_ value: Int64) -> Int32 {
-  Int32(max(Int64(Int32.min), min(Int64(Int32.max), value)))
+private func clampedInt32(_ value: Int32, plus delta: Int32, minimum: Int32, maximum: Int32)
+  -> Int32
+{
+  let lower = min(minimum, maximum)
+  let upper = max(minimum, maximum)
+  return Int32(max(Int64(lower), min(Int64(upper), Int64(value) + Int64(delta))))
 }
 
 extension [UInt8] {

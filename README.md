@@ -12,7 +12,7 @@ brew install --cask obsbot-remote
 open -a "OBSBOT Remote"
 ```
 
-Connect the OBSBOT Smart Remote 2 USB dongle and the OBSBOT camera before launching the app. The menu bar video icon opens the app menu with Start/Stop, Log, and Quit.
+Connect the OBSBOT Smart Remote 2 USB dongle and the OBSBOT camera before launching the app. The menu bar video icon opens the app menu with Start/Stop, Camera Controls, Log, and Quit.
 
 Uninstall:
 
@@ -28,7 +28,9 @@ Launch the app:
 open -a "OBSBOT Remote"
 ```
 
-The app starts remote control immediately. Use the menu bar icon to stop or restart control, open the log, or quit.
+The app starts remote control immediately. Use the menu bar icon to stop or restart control, open camera controls, open the log, or quit.
+
+Camera Controls opens a normal macOS window for wake/sleep, pan/tilt, center, zoom, and AI mode controls. The pan/tilt and zoom step-size controls are shared with the remote, so changing them in the window changes how far each remote button press moves.
 
 Normal Homebrew users do not need to run key capture. The app ships with the default Smart Remote 2 keymap.
 
