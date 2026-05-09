@@ -59,7 +59,7 @@ Use this sequence for a complete release:
 
 1. Preflight app repo:
    - `git status --short`
-   - `swift format lint --recursive --strict Package.swift Sources`
+   - `scripts/lint-swift-format.sh`
    - `swift build`
    - `swift run obsbot-remote-self-test`
    - `swift build --configuration release`
@@ -95,7 +95,7 @@ Use this sequence for a complete release:
 
 Before marking a release ready:
 
-- `swift format lint --recursive --strict Package.swift Sources` passes.
+- `scripts/lint-swift-format.sh` passes.
 - `swift build` passes.
 - `swift run obsbot-remote-self-test` passes.
 - `swift build --configuration release` passes.

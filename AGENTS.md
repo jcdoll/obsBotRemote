@@ -32,7 +32,8 @@ Current status:
 ```bash
 swift build
 swift run obsbot-remote-self-test
-swift format lint --recursive --strict Package.swift Sources
+scripts/lint-swift-format.sh
+scripts/install-git-hooks.sh
 swift run obsbot-remote doctor
 swift run obsbot-remote devices
 swift run obsbot-remote map-buttons

@@ -39,7 +39,8 @@ Install Apple's Command Line Tools or Xcode, then validate the package:
 ```bash
 swift build
 swift run obsbot-remote-self-test
-swift format lint --recursive --strict Package.swift Sources
+scripts/lint-swift-format.sh
+scripts/install-git-hooks.sh
 ```
 
 Build and run the menu bar app without installing it:
