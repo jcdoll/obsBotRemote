@@ -188,15 +188,9 @@ struct CameraControlsWindowView: View {
       }
       Spacer()
       VStack(alignment: .trailing, spacing: 3) {
-        HStack(spacing: 6) {
-          if viewModel.isBusy {
-            ProgressView()
-              .scaleEffect(0.55)
-          }
-          Text(viewModel.runStatusText)
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        }
+        Text(viewModel.runStatusText)
+          .font(.caption)
+          .foregroundStyle(.secondary)
         Text(viewModel.panTiltText)
           .font(.caption2)
           .foregroundStyle(.secondary)
