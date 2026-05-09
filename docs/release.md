@@ -93,6 +93,16 @@ security find-identity -v -p codesigning | grep "Developer ID Application"
 
 Create a keychain profile for `notarytool`. This stores the Apple credentials in the local keychain so release commands do not need passwords on the command line.
 
+Create the app-specific password first:
+
+1. Open `account.apple.com/account/manage`.
+2. Open **Sign-In and Security**.
+3. Open **App-Specific Passwords**.
+4. Create a password named `OBSBOT Remote Notary`.
+5. Copy the generated password. Apple shows it once.
+
+Store the notary credentials in the local keychain. Use the Apple ID email for the developer account and the Apple Developer Team ID.
+
 ```bash
 read -r -p "Apple ID email: " APPLE_ID
 read -r -p "Apple Developer Team ID: " TEAM_ID
@@ -106,6 +116,16 @@ xcrun notarytool store-credentials "obsbot-remote-notary" \
 
 unset APP_PASSWORD
 ```
+
+The command can be run from any folder. It stores credentials under the profile name `obsbot-remote-notary`.
+
+Verify that the stored profile can authenticate:
+
+```bash
+xcrun notarytool history --keychain-profile "obsbot-remote-notary"
+```
+
+An empty history is fine. Authentication errors are not.
 
 ## Version Update
 
