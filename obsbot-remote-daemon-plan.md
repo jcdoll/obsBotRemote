@@ -13,7 +13,7 @@ This project has pivoted to a native Swift implementation.
 
 Current lab-bench status:
 
-- `map-buttons` captured the OBSBOT Smart Remote 2 button signatures into `docs/remote-button-capture.json`.
+- `map-buttons` captured the OBSBOT Smart Remote 2 button signatures into `Resources/remote-button-capture.json`.
 - `listen` decodes live remote input and prints dry-run camera actions.
 - `camera-probe` validates the OBSBOT camera exposes standard UVC `zoom-abs` and `pan-tilt-abs`.
 - `camera-zoom` and `camera-pan-tilt` send native UVC `SET_CUR` requests directly through IOUSBLib.

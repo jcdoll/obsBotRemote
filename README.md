@@ -7,6 +7,7 @@ The project is Swift-first. It uses Apple system frameworks directly: IOHIDManag
 Current status:
 
 - remote button capture, dry-run decoding, and foreground live control are working;
+- the default remote button keymap lives in `Resources/remote-button-capture.json`;
 - standard UVC zoom and pan/tilt lab commands are working;
 - OBSBOT vendor extension-unit probing is working;
 - OBSBOT sleep/wake is working through `control`; AI tracking mode buttons are mapped for testing;
@@ -75,7 +76,7 @@ Use `devices` first to identify the remote dongle and camera vendor/product ids.
 `control` maps the remote's Track, Close-up, Hand Track, and Desk Mode buttons to OBSBOT AI modes.
 
 Observed local hardware ids are tracked in [docs/hardware-notes.md](docs/hardware-notes.md).
-Remote button capture is tracked in [docs/remote-button-map.md](docs/remote-button-map.md).
+Remote button mapping is described in [docs/remote-button-map.md](docs/remote-button-map.md).
 
 ## References
 

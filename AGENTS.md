@@ -15,6 +15,7 @@ Current status:
 ## Repository Layout
 
 - `Package.swift` -- Swift Package Manager manifest.
+- `Resources/remote-button-capture.json` -- runtime default keymap for the OBSBOT Smart Remote 2.
 - `Sources/ObsbotRemoteCore/` -- testable core types, USB discovery, camera state, UVC parsing, OBSBOT vendor protocol, and UVC control facade.
 - `Sources/ObsbotRemoteControl/` -- shared remote button models, HID capture helpers, and live camera-control runtime.
 - `Sources/ObsbotRemoteCLI/` -- CLI lab bench split by command dispatch, options, HID input, terminal input, button mapping, and camera commands.

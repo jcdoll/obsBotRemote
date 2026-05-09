@@ -14,7 +14,7 @@ EXECUTABLE="$BIN_DIR/obsbot-remote-menu"
 rm -rf "$APP_DIR"
 mkdir -p "$APP_DIR/Contents/MacOS" "$APP_DIR/Contents/Resources"
 cp "$EXECUTABLE" "$APP_DIR/Contents/MacOS/OBSBOT Remote"
-cp "$REPO_ROOT/docs/remote-button-capture.json" "$APP_DIR/Contents/Resources/remote-button-capture.json"
+cp "$REPO_ROOT/Resources/remote-button-capture.json" "$APP_DIR/Contents/Resources/remote-button-capture.json"
 
 cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>

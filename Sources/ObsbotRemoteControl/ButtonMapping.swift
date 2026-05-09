@@ -2,7 +2,7 @@ import Foundation
 
 public let defaultRemoteVendorID: UInt32 = 0x1106
 public let defaultRemoteProductID: UInt32 = 0xB106
-public let defaultRemoteButtonCaptureURL = URL(fileURLWithPath: "docs/remote-button-capture.json")
+public let defaultRemoteButtonCaptureURL = URL(fileURLWithPath: "Resources/remote-button-capture.json")
 public let defaultRemoteInputWindow: TimeInterval = 0.35
 public let defaultRemotePanTiltStep: Int32 = 18_000
 public let defaultRemoteZoomStep = 10

@@ -9,7 +9,7 @@ swift run obsbot-remote map-buttons
 This walks the button list, prompts for each button, and writes:
 
 ```text
-docs/remote-button-capture.json
+Resources/remote-button-capture.json
 ```
 
 If that JSON already exists, the mapper resumes it and skips completed buttons. Use `--reset` to start a fresh capture file:
@@ -46,7 +46,7 @@ swift run obsbot-remote hid-sniff --vendor-id 0x1106 --product-id 0xB106
 
 During guided capture, press Return to arm the capture window, then press and release the named remote button. At a prompt, enter `s` to skip, `r` to retry, or `q` to quit and save a partial capture.
 
-The mapper saves after each completed button, so a later crash or termination should still leave the prior captures in `docs/remote-button-capture.json`.
+The mapper saves after each completed button, so a later crash or termination should still leave the prior captures in `Resources/remote-button-capture.json`.
 
 If two seconds is too short, extend the capture window:
 
@@ -60,7 +60,7 @@ After capture, use the live decoder to verify normal operation without moving th
 swift run obsbot-remote listen
 ```
 
-The decoder matches live input against `docs/remote-button-capture.json` and prints the dry-run action, for example `Zoom In -> zoom(delta: 10)`.
+The decoder matches live input against `Resources/remote-button-capture.json` and prints the dry-run action, for example `Zoom In -> zoom(delta: 10)`.
 
 Use foreground live control when you want the remote to move the camera:
 
