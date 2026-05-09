@@ -144,7 +144,7 @@ git status --short
 
 Run release commands from the repository root.
 
-Set release variables:
+Run the build and signing block:
 
 ```bash
 VERSION="0.1.0"
@@ -157,51 +157,42 @@ FINAL_ZIP="$ARTIFACT_DIR/OBSBOT-Remote-$VERSION.zip"
 
 test -n "$IDENTITY"
 printf 'Signing identity: %s\n' "$IDENTITY"
-```
 
-Build the app bundle:
-
-```bash
 rm -rf "$ARTIFACT_DIR"
 mkdir -p "$ARTIFACT_DIR"
-
 swift build
 swift run obsbot-remote-self-test
 scripts/build-menu-app.sh release
-```
 
-The local build script ad-hoc signs the app for development. Replace that signature with the Developer ID signature and hardened runtime:
-
-```bash
 codesign --force --deep --options runtime --timestamp --sign "$IDENTITY" "$APP"
 codesign --verify --deep --strict --verbose=2 "$APP"
 ```
 
-Create the archive to submit to Apple:
+The local build script ad-hoc signs the app for development. The `codesign` command replaces that signature with the Developer ID signature and hardened runtime.
+
+Run the notarization and final packaging block:
 
 ```bash
+VERSION="0.1.0"
+NOTARY_PROFILE="obsbot-remote-notary"
+APP=".build/OBSBOT Remote.app"
+ARTIFACT_DIR=".build/release-artifacts"
+NOTARY_ZIP="$ARTIFACT_DIR/OBSBOT-Remote-$VERSION-notary-upload.zip"
+FINAL_ZIP="$ARTIFACT_DIR/OBSBOT-Remote-$VERSION.zip"
+
+mkdir -p "$ARTIFACT_DIR"
+test -d "$APP"
+
 ditto -c -k --keepParent "$APP" "$NOTARY_ZIP"
-```
 
-Submit and wait for notarization:
-
-```bash
 xcrun notarytool submit "$NOTARY_ZIP" \
   --keychain-profile "$NOTARY_PROFILE" \
   --wait
-```
 
-Staple the accepted ticket to the app bundle, then validate it:
-
-```bash
 xcrun stapler staple "$APP"
 xcrun stapler validate "$APP"
 spctl --assess --type execute --verbose=4 "$APP"
-```
 
-Create the final user-facing archive after stapling:
-
-```bash
 rm -f "$FINAL_ZIP"
 ditto -c -k --keepParent "$APP" "$FINAL_ZIP"
 shasum -a 256 "$FINAL_ZIP"
