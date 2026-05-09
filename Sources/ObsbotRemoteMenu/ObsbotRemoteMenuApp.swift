@@ -5,247 +5,252 @@ import SwiftUI
 
 @main
 enum ObsbotRemoteMenuApp {
-    @MainActor private static var appDelegate: MenuAppDelegate?
+  @MainActor private static var appDelegate: MenuAppDelegate?
 
-    @MainActor
-    static func main() {
-        let application = NSApplication.shared
-        let delegate = MenuAppDelegate()
-        appDelegate = delegate
-        application.delegate = delegate
-        application.setActivationPolicy(.accessory)
-        application.run()
-    }
+  @MainActor
+  static func main() {
+    let application = NSApplication.shared
+    let delegate = MenuAppDelegate()
+    appDelegate = delegate
+    application.delegate = delegate
+    application.setActivationPolicy(.accessory)
+    application.run()
+  }
 }
 
 @MainActor
 private final class MenuAppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
-    private let runner = RemoteControlRunner()
-    private var statusItem: NSStatusItem?
-    private var titleMenuItem: NSMenuItem?
-    private var statusMenuItem: NSMenuItem?
-    private var startStopMenuItem: NSMenuItem?
+  private let runner = RemoteControlRunner()
+  private var statusItem: NSStatusItem?
+  private var titleMenuItem: NSMenuItem?
+  private var statusMenuItem: NSMenuItem?
+  private var startStopMenuItem: NSMenuItem?
 
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        self.statusItem = statusItem
+  func applicationDidFinishLaunching(_ notification: Notification) {
+    let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+    self.statusItem = statusItem
 
-        if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "video.fill", accessibilityDescription: "OBSBOT Remote")
-        }
-
-        statusItem.menu = makeStatusMenu()
-
-        runner.start()
-        updateMenuItems()
+    if let button = statusItem.button {
+      button.image = NSImage(
+        systemSymbolName: "video.fill", accessibilityDescription: "OBSBOT Remote")
     }
 
-    func applicationWillTerminate(_ notification: Notification) {
-        runner.stop()
-    }
+    statusItem.menu = makeStatusMenu()
 
-    func menuWillOpen(_ menu: NSMenu) {
-        updateMenuItems()
-    }
+    runner.start()
+    updateMenuItems()
+  }
 
-    private func makeStatusMenu() -> NSMenu {
-        let menu = NSMenu()
-        menu.delegate = self
+  func applicationWillTerminate(_ notification: Notification) {
+    runner.stop()
+  }
 
-        let titleItem = NSMenuItem(title: "OBSBOT Remote", action: nil, keyEquivalent: "")
-        titleItem.isEnabled = false
-        titleMenuItem = titleItem
-        menu.addItem(titleItem)
+  func menuWillOpen(_ menu: NSMenu) {
+    updateMenuItems()
+  }
 
-        let statusItem = NSMenuItem(title: runner.status, action: nil, keyEquivalent: "")
-        statusItem.isEnabled = false
-        statusMenuItem = statusItem
-        menu.addItem(statusItem)
+  private func makeStatusMenu() -> NSMenu {
+    let menu = NSMenu()
+    menu.delegate = self
 
-        menu.addItem(.separator())
+    let titleItem = NSMenuItem(title: "OBSBOT Remote", action: nil, keyEquivalent: "")
+    titleItem.isEnabled = false
+    titleMenuItem = titleItem
+    menu.addItem(titleItem)
 
-        let startStopItem = NSMenuItem(title: "Start", action: #selector(toggleRemoteControl(_:)), keyEquivalent: "")
-        startStopItem.target = self
-        startStopMenuItem = startStopItem
-        menu.addItem(startStopItem)
+    let statusItem = NSMenuItem(title: runner.status, action: nil, keyEquivalent: "")
+    statusItem.isEnabled = false
+    statusMenuItem = statusItem
+    menu.addItem(statusItem)
 
-        let logItem = NSMenuItem(title: "Log...", action: #selector(showLog(_:)), keyEquivalent: "")
-        logItem.target = self
-        menu.addItem(logItem)
+    menu.addItem(.separator())
 
-        menu.addItem(.separator())
+    let startStopItem = NSMenuItem(
+      title: "Start", action: #selector(toggleRemoteControl(_:)), keyEquivalent: "")
+    startStopItem.target = self
+    startStopMenuItem = startStopItem
+    menu.addItem(startStopItem)
 
-        let quitItem = NSMenuItem(title: "Quit OBSBOT Remote", action: #selector(quit(_:)), keyEquivalent: "")
-        quitItem.target = self
-        menu.addItem(quitItem)
+    let logItem = NSMenuItem(title: "Log...", action: #selector(showLog(_:)), keyEquivalent: "")
+    logItem.target = self
+    menu.addItem(logItem)
 
-        return menu
-    }
+    menu.addItem(.separator())
 
-    private func updateMenuItems() {
-        titleMenuItem?.title = "OBSBOT Remote"
-        statusMenuItem?.title = runner.status
-        startStopMenuItem?.title = runner.isRunning ? "Stop" : "Start"
-    }
+    let quitItem = NSMenuItem(
+      title: "Quit OBSBOT Remote", action: #selector(quit(_:)), keyEquivalent: "")
+    quitItem.target = self
+    menu.addItem(quitItem)
 
-    @objc private func toggleRemoteControl(_ sender: NSMenuItem) {
-        runner.isRunning ? runner.stop() : runner.start()
-        updateMenuItems()
-    }
+    return menu
+  }
 
-    @objc private func showLog(_ sender: NSMenuItem) {
-        runner.showLogWindow()
-    }
+  private func updateMenuItems() {
+    titleMenuItem?.title = "OBSBOT Remote"
+    statusMenuItem?.title = runner.status
+    startStopMenuItem?.title = runner.isRunning ? "Stop" : "Start"
+  }
 
-    @objc private func quit(_ sender: NSMenuItem) {
-        runner.quit()
-    }
+  @objc private func toggleRemoteControl(_ sender: NSMenuItem) {
+    runner.isRunning ? runner.stop() : runner.start()
+    updateMenuItems()
+  }
+
+  @objc private func showLog(_ sender: NSMenuItem) {
+    runner.showLogWindow()
+  }
+
+  @objc private func quit(_ sender: NSMenuItem) {
+    runner.quit()
+  }
 }
 
 @MainActor
 private final class RemoteControlRunner: ObservableObject {
-    @Published private(set) var status = "Stopped"
-    @Published private(set) var isRunning = false
-    @Published private(set) var logText = ""
+  @Published private(set) var status = "Stopped"
+  @Published private(set) var isRunning = false
+  @Published private(set) var logText = ""
 
-    private var session: RemoteHotKeyControlSession?
-    private var logWindow: NSWindow?
-    private var logWindowDelegate: LogWindowDelegate?
+  private var session: RemoteHotKeyControlSession?
+  private var logWindow: NSWindow?
+  private var logWindowDelegate: LogWindowDelegate?
 
-    func start() {
-        guard !isRunning else {
-            appendSystemLog("remote control is already running")
-            return
-        }
-
-        let session = RemoteHotKeyControlSession(buttonCaptureURL: remoteButtonCaptureURL()) { [weak self] message in
-            Task { @MainActor [weak self] in
-                self?.appendControlLog(message)
-            }
-        }
-
-        do {
-            appendSystemLog("Starting remote control.")
-            try session.start()
-            self.session = session
-            isRunning = true
-            status = "Running"
-        } catch {
-            status = "Start failed"
-            appendSystemLog("failed to start remote control: \(error)")
-        }
+  func start() {
+    guard !isRunning else {
+      appendSystemLog("remote control is already running")
+      return
     }
 
-    func stop() {
-        guard let session else {
-            isRunning = false
-            status = "Stopped"
-            return
-        }
-
-        status = "Stopping"
-        appendSystemLog("Stopping remote control.")
-        session.stop()
-        self.session = nil
-        isRunning = false
-        status = "Stopped"
+    let session = RemoteHotKeyControlSession(buttonCaptureURL: remoteButtonCaptureURL()) {
+      [weak self] message in
+      Task { @MainActor [weak self] in
+        self?.appendControlLog(message)
+      }
     }
 
-    func showLogWindow() {
-        if let logWindow {
-            logWindow.makeKeyAndOrderFront(nil)
-            NSApp.activate(ignoringOtherApps: true)
-            return
-        }
+    do {
+      appendSystemLog("Starting remote control.")
+      try session.start()
+      self.session = session
+      isRunning = true
+      status = "Running"
+    } catch {
+      status = "Start failed"
+      appendSystemLog("failed to start remote control: \(error)")
+    }
+  }
 
-        let controller = NSHostingController(rootView: LogWindowView(runner: self))
-        let window = NSWindow(contentViewController: controller)
-        window.title = "OBSBOT Remote Log"
-        window.setContentSize(NSSize(width: 760, height: 460))
-        window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
-        window.isReleasedWhenClosed = false
-        let delegate = LogWindowDelegate { [weak self] in
-            self?.logWindow = nil
-            self?.logWindowDelegate = nil
-        }
-        logWindowDelegate = delegate
-        window.delegate = delegate
-        logWindow = window
-        window.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+  func stop() {
+    guard let session else {
+      isRunning = false
+      status = "Stopped"
+      return
     }
 
-    func quit() {
-        stop()
-        NSApp.terminate(nil)
+    status = "Stopping"
+    appendSystemLog("Stopping remote control.")
+    session.stop()
+    self.session = nil
+    isRunning = false
+    status = "Stopped"
+  }
+
+  func showLogWindow() {
+    if let logWindow {
+      logWindow.makeKeyAndOrderFront(nil)
+      NSApp.activate(ignoringOtherApps: true)
+      return
     }
 
-    private func appendSystemLog(_ message: String) {
-        appendRawLog("[\(Self.timestampFormatter.string(from: Date()))] \(message)\n")
+    let controller = NSHostingController(rootView: LogWindowView(runner: self))
+    let window = NSWindow(contentViewController: controller)
+    window.title = "OBSBOT Remote Log"
+    window.setContentSize(NSSize(width: 760, height: 460))
+    window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
+    window.isReleasedWhenClosed = false
+    let delegate = LogWindowDelegate { [weak self] in
+      self?.logWindow = nil
+      self?.logWindowDelegate = nil
     }
+    logWindowDelegate = delegate
+    window.delegate = delegate
+    logWindow = window
+    window.makeKeyAndOrderFront(nil)
+    NSApp.activate(ignoringOtherApps: true)
+  }
 
-    private func appendControlLog(_ message: String) {
-        appendRawLog(message.hasSuffix("\n") ? message : message + "\n")
+  func quit() {
+    stop()
+    NSApp.terminate(nil)
+  }
+
+  private func appendSystemLog(_ message: String) {
+    appendRawLog("[\(Self.timestampFormatter.string(from: Date()))] \(message)\n")
+  }
+
+  private func appendControlLog(_ message: String) {
+    appendRawLog(message.hasSuffix("\n") ? message : message + "\n")
+  }
+
+  private func appendRawLog(_ text: String) {
+    logText += text
+    let maxCharacters = 40_000
+    if logText.count > maxCharacters {
+      let dropCount = logText.count - maxCharacters
+      logText.removeFirst(dropCount)
     }
+  }
 
-    private func appendRawLog(_ text: String) {
-        logText += text
-        let maxCharacters = 40_000
-        if logText.count > maxCharacters {
-            let dropCount = logText.count - maxCharacters
-            logText.removeFirst(dropCount)
-        }
+  private static let timestampFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "HH:mm:ss"
+    return formatter
+  }()
+
+  private func remoteButtonCaptureURL() -> URL {
+    if let bundledURL = Bundle.main.url(forResource: "remote-button-capture", withExtension: "json")
+    {
+      return bundledURL
     }
-
-    private static let timestampFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss"
-        return formatter
-    }()
-
-    private func remoteButtonCaptureURL() -> URL {
-        if let bundledURL = Bundle.main.url(forResource: "remote-button-capture", withExtension: "json") {
-            return bundledURL
-        }
-        return defaultRemoteButtonCaptureURL
-    }
+    return defaultRemoteButtonCaptureURL
+  }
 }
 
 private struct LogWindowView: View {
-    @ObservedObject var runner: RemoteControlRunner
+  @ObservedObject var runner: RemoteControlRunner
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("OBSBOT Remote Log")
-                    .font(.headline)
-                Spacer()
-                Text(runner.status)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+  var body: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      HStack {
+        Text("OBSBOT Remote Log")
+          .font(.headline)
+        Spacer()
+        Text(runner.status)
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
 
-            ScrollView {
-                Text(runner.logText.isEmpty ? "No log yet." : runner.logText)
-                    .font(.system(.body, design: .monospaced))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .textSelection(.enabled)
-            }
-            .border(Color.secondary.opacity(0.25))
-        }
-        .padding(16)
-        .frame(minWidth: 600, minHeight: 360)
+      ScrollView {
+        Text(runner.logText.isEmpty ? "No log yet." : runner.logText)
+          .font(.system(.body, design: .monospaced))
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .textSelection(.enabled)
+      }
+      .border(Color.secondary.opacity(0.25))
     }
+    .padding(16)
+    .frame(minWidth: 600, minHeight: 360)
+  }
 }
 
 private final class LogWindowDelegate: NSObject, NSWindowDelegate {
-    private let onClose: () -> Void
+  private let onClose: () -> Void
 
-    init(onClose: @escaping () -> Void) {
-        self.onClose = onClose
-    }
+  init(onClose: @escaping () -> Void) {
+    self.onClose = onClose
+  }
 
-    func windowWillClose(_ notification: Notification) {
-        onClose()
-    }
+  func windowWillClose(_ notification: Notification) {
+    onClose()
+  }
 }
