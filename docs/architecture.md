@@ -39,7 +39,9 @@ The current Swift CLI is the lab bench. It lists USB devices, sniffs HID events,
 - camera state and action reduction;
 - numeric parsing and hex formatting;
 - IOKit USB device discovery;
-- UVC descriptor parsing and direct USB control requests.
+- UVC descriptor parsing;
+- OBSBOT vendor packet construction;
+- direct USB control requests exposed through `UVCController`.
 
 `ObsbotRemoteUSBBridge` is a small C target that wraps IOUSBLib calls needed for USB configuration descriptors and control requests. Swift owns the UVC parsing and command decisions.
 
@@ -55,6 +57,15 @@ The current Swift CLI is the lab bench. It lists USB devices, sniffs HID events,
 - `camera-power` reads or toggles OBSBOT run/sleep state through the vendor extension unit;
 - `camera-xu-get` and `camera-xu-dump` inspect UVC extension-unit selectors;
 - `uvc-controls` reports the native UVC implementation status.
+
+CLI implementation is split by concern:
+
+- `main.swift` owns process startup and error handling;
+- `CommandLineTool.swift` owns command dispatch and help text;
+- `CommandOptions.swift` owns argument parsing;
+- `HIDCommands.swift`, `HIDRemoteInput.swift`, and `TerminalInput.swift` own remote capture and terminal input;
+- `ButtonMapping.swift` owns capture JSON models, matching, and dry-run action labels;
+- `CameraCommands.swift` owns camera-facing lab commands.
 
 ## Lab Bench Strategy
 

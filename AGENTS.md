@@ -15,8 +15,8 @@ Current status:
 ## Repository Layout
 
 - `Package.swift` -- Swift Package Manager manifest.
-- `Sources/ObsbotRemoteCore/` -- testable core types, USB discovery, camera state, UVC parsing, and UVC control logic.
-- `Sources/ObsbotRemoteCLI/` -- CLI lab bench and future daemon entry point.
+- `Sources/ObsbotRemoteCore/` -- testable core types, USB discovery, camera state, UVC parsing, OBSBOT vendor protocol, and UVC control facade.
+- `Sources/ObsbotRemoteCLI/` -- CLI lab bench and future daemon entry point, split by command dispatch, options, HID input, terminal input, button mapping, and camera commands.
 - `Sources/ObsbotRemoteSelfTest/` -- no-dependency self-test executable for bare Command Line Tools installs.
 - `docs/` -- architecture and operational notes.
 - `obsbot-remote-daemon-plan.md` -- initial research plan and hardware-discovery notes. Prefer current docs for status.
@@ -54,6 +54,8 @@ Use `swift build --configuration release` before packaging or Homebrew work.
 - Use IOHIDManager for remote dongle input and device seizure.
 - Use IOKit/IOUSBLib for UVC camera-control transfers.
 - OBSBOT vendor controls are UVC extension-unit packets. Keep the known selector/status details in docs when new controls are discovered.
+- Keep `Sources/ObsbotRemoteCLI/main.swift` as process startup only. Add command behavior to focused files or `CommandLineTool` extensions.
+- Keep `UVCController` as the high-level camera facade. Put descriptor parsing and OBSBOT packet construction in their dedicated core files.
 - Unknown remote buttons should do nothing until keycodes are confirmed with the real dongle.
 - Keep the CLI useful as a lab bench. Every hardware-discovery command should be directly reusable while building the daemon.
 
