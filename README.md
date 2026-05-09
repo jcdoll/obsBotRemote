@@ -39,7 +39,7 @@ scripts/build-menu-app.sh
 open ".build/OBSBOT Remote.app"
 ```
 
-Click the menu bar video icon to start or stop live remote control, open the log, or quit. The menu app opens the remote dongle in normal HID listening mode and does not block remote keystrokes from reaching other apps.
+Click the menu bar video icon to start or stop live remote control, open the log, or quit. The menu app opens the remote dongle in normal HID listening mode and does not block remote keystrokes from reaching other apps. macOS may ask for Input Monitoring access before HID listening is allowed.
 
 Remote discovery and mapping:
 

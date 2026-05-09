@@ -72,6 +72,22 @@ private final class RemoteControlRunner: ObservableObject {
             return
         }
 
+        switch checkHIDListenAccess() {
+        case .granted:
+            break
+        case .denied:
+            status = "Input access denied"
+            appendSystemLog("input monitoring is disabled for OBSBOT Remote")
+            return
+        case .unknown:
+            appendSystemLog("requesting input monitoring access")
+            guard requestHIDListenAccess() else {
+                status = "Input access needed"
+                appendSystemLog("grant Input Monitoring to OBSBOT Remote, then restart the app")
+                return
+            }
+        }
+
         let configuration = RemoteControlSessionConfiguration(
             buttonCaptureURL: remoteButtonCaptureURL(),
             requireSeize: false

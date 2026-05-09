@@ -1,4 +1,5 @@
 import Foundation
+import IOKit.hidsystem
 import IOKit.hid
 
 public final class HIDEventCollector: @unchecked Sendable {
@@ -24,6 +25,28 @@ public final class HIDEventCollector: @unchecked Sendable {
             events
         }
     }
+}
+
+public enum HIDListenAccessStatus: String, Sendable {
+    case granted
+    case denied
+    case unknown
+}
+
+public func checkHIDListenAccess() -> HIDListenAccessStatus {
+    switch IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) {
+    case kIOHIDAccessTypeGranted:
+        return .granted
+    case kIOHIDAccessTypeDenied:
+        return .denied
+    default:
+        return .unknown
+    }
+}
+
+@discardableResult
+public func requestHIDListenAccess() -> Bool {
+    IOHIDRequestAccess(kIOHIDRequestTypeListenEvent)
 }
 
 public func makeHIDManager(vendorID: UInt32?, productID: UInt32?) -> IOHIDManager {

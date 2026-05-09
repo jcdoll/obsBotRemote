@@ -104,7 +104,7 @@ These references informed the current UVC extension-unit work:
 
 The tool controls camera state but must not take ownership of the video stream. Zoom, Meet, OBS, and other apps should still use the camera while this tool adjusts supported controls.
 
-Normal HID listening keeps startup simple but does not prevent remote keystrokes from reaching the focused app. HID device seizure or a focused event blocker can be revisited if key leakage is unacceptable.
+Normal HID listening keeps startup simple but does not prevent remote keystrokes from reaching the focused app. macOS may still require Input Monitoring access for IOHIDManager event delivery. HID device seizure or a focused event blocker can be revisited if key leakage is unacceptable.
 
 ## Test Strategy
 
