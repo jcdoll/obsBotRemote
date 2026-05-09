@@ -40,7 +40,7 @@ Create the CSR on the signing Mac:
 1. Open **Keychain Access**.
 2. In the menu bar, choose **Keychain Access > Certificate Assistant > Request a Certificate From a Certificate Authority...**.
 3. Enter the Apple ID email address for the developer account.
-4. Enter a generic common name, such as `OBSBOT Remote Developer ID`.
+4. Enter `OBSBOT Remote Developer ID` as the common name.
 5. Leave **CA Email Address** blank.
 6. Select **Saved to disk**.
 7. Select **Let me specify key pair information** if that option is shown.
@@ -58,6 +58,7 @@ Create the certificate on the Apple Developer website:
 7. Upload the `.certSigningRequest` file from the Mac.
 8. Generate and download the `.cer` file.
 9. Double-click the `.cer` file on the same Mac to install it in Keychain Access.
+10. If Keychain Access asks where to add the certificate, choose the **login** keychain. Do not choose iCloud.
 
 Verify the installed signing identity:
 
