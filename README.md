@@ -39,7 +39,7 @@ scripts/build-menu-app.sh
 open ".build/OBSBOT Remote.app"
 ```
 
-The menu app starts live remote control when launched. Click the menu bar video icon to stop or restart live control, open the log, or quit. The menu app registers the enabled remote shortcuts from `Resources/remote-button-capture.json` as macOS global hotkeys and does not open the remote HID device.
+The menu app starts live remote control when launched. Click the menu bar video icon to open the status menu, stop or restart live control, open the log, or quit. The menu app registers the enabled remote shortcuts from `Resources/remote-button-capture.json` as macOS global hotkeys and does not open the remote HID device.
 
 Remote discovery and mapping:
 

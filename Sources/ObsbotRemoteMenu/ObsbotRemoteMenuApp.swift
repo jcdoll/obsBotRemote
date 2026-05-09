@@ -19,10 +19,12 @@ enum ObsbotRemoteMenuApp {
 }
 
 @MainActor
-private final class MenuAppDelegate: NSObject, NSApplicationDelegate {
+private final class MenuAppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let runner = RemoteControlRunner()
-    private let popover = NSPopover()
     private var statusItem: NSStatusItem?
+    private var titleMenuItem: NSMenuItem?
+    private var statusMenuItem: NSMenuItem?
+    private var startStopMenuItem: NSMenuItem?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -30,31 +32,73 @@ private final class MenuAppDelegate: NSObject, NSApplicationDelegate {
 
         if let button = statusItem.button {
             button.image = NSImage(systemSymbolName: "video.fill", accessibilityDescription: "OBSBOT Remote")
-            button.target = self
-            button.action = #selector(togglePopover(_:))
         }
 
-        popover.behavior = .transient
-        popover.contentSize = NSSize(width: 300, height: 128)
-        popover.contentViewController = NSHostingController(rootView: RemotePopoverView(runner: runner))
+        statusItem.menu = makeStatusMenu()
 
         runner.start()
+        updateMenuItems()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         runner.stop()
     }
 
-    @objc private func togglePopover(_ sender: AnyObject?) {
-        guard let button = statusItem?.button else {
-            return
-        }
+    func menuWillOpen(_ menu: NSMenu) {
+        updateMenuItems()
+    }
 
-        if popover.isShown {
-            popover.performClose(sender)
-        } else {
-            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-        }
+    private func makeStatusMenu() -> NSMenu {
+        let menu = NSMenu()
+        menu.delegate = self
+
+        let titleItem = NSMenuItem(title: "OBSBOT Remote", action: nil, keyEquivalent: "")
+        titleItem.isEnabled = false
+        titleMenuItem = titleItem
+        menu.addItem(titleItem)
+
+        let statusItem = NSMenuItem(title: runner.status, action: nil, keyEquivalent: "")
+        statusItem.isEnabled = false
+        statusMenuItem = statusItem
+        menu.addItem(statusItem)
+
+        menu.addItem(.separator())
+
+        let startStopItem = NSMenuItem(title: "Start", action: #selector(toggleRemoteControl(_:)), keyEquivalent: "")
+        startStopItem.target = self
+        startStopMenuItem = startStopItem
+        menu.addItem(startStopItem)
+
+        let logItem = NSMenuItem(title: "Log...", action: #selector(showLog(_:)), keyEquivalent: "")
+        logItem.target = self
+        menu.addItem(logItem)
+
+        menu.addItem(.separator())
+
+        let quitItem = NSMenuItem(title: "Quit OBSBOT Remote", action: #selector(quit(_:)), keyEquivalent: "q")
+        quitItem.target = self
+        menu.addItem(quitItem)
+
+        return menu
+    }
+
+    private func updateMenuItems() {
+        titleMenuItem?.title = "OBSBOT Remote"
+        statusMenuItem?.title = runner.status
+        startStopMenuItem?.title = runner.isRunning ? "Stop" : "Start"
+    }
+
+    @objc private func toggleRemoteControl(_ sender: NSMenuItem) {
+        runner.isRunning ? runner.stop() : runner.start()
+        updateMenuItems()
+    }
+
+    @objc private func showLog(_ sender: NSMenuItem) {
+        runner.showLogWindow()
+    }
+
+    @objc private func quit(_ sender: NSMenuItem) {
+        runner.quit()
     }
 }
 
@@ -164,56 +208,6 @@ private final class RemoteControlRunner: ObservableObject {
             return bundledURL
         }
         return defaultRemoteButtonCaptureURL
-    }
-}
-
-private struct RemotePopoverView: View {
-    @ObservedObject var runner: RemoteControlRunner
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                Image(systemName: runner.isRunning ? "dot.radiowaves.left.and.right" : "video")
-                    .frame(width: 22)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("OBSBOT Remote")
-                        .font(.headline)
-                    Text(runner.status)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                Circle()
-                    .fill(runner.isRunning ? Color.green : Color.secondary.opacity(0.45))
-                    .frame(width: 9, height: 9)
-            }
-
-            HStack(spacing: 8) {
-                Button {
-                    runner.isRunning ? runner.stop() : runner.start()
-                } label: {
-                    Label(runner.isRunning ? "Stop" : "Start", systemImage: runner.isRunning ? "stop.fill" : "play.fill")
-                        .frame(maxWidth: .infinity)
-                }
-
-                Button {
-                    runner.showLogWindow()
-                } label: {
-                    Label("Log", systemImage: "doc.text.magnifyingglass")
-                        .frame(maxWidth: .infinity)
-                }
-
-                Button {
-                    runner.quit()
-                } label: {
-                    Label("Quit", systemImage: "power")
-                        .frame(maxWidth: .infinity)
-                }
-                .keyboardShortcut("q")
-            }
-        }
-        .padding(14)
-        .frame(width: 300, height: 128)
     }
 }
 
