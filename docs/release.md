@@ -142,16 +142,21 @@ git status --short
 
 ## Build, Sign, Notarize, and Package
 
-Set release variables. Replace `IDENTITY` with the exact certificate name from `security find-identity`.
+Run release commands from the repository root.
+
+Set release variables:
 
 ```bash
 VERSION="0.1.0"
-IDENTITY="Developer ID Application: YOUR NAME (TEAMID)"
+IDENTITY="$(security find-identity -v -p codesigning | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | head -1)"
 NOTARY_PROFILE="obsbot-remote-notary"
 APP=".build/OBSBOT Remote.app"
 ARTIFACT_DIR=".build/release-artifacts"
 NOTARY_ZIP="$ARTIFACT_DIR/OBSBOT-Remote-$VERSION-notary-upload.zip"
 FINAL_ZIP="$ARTIFACT_DIR/OBSBOT-Remote-$VERSION.zip"
+
+test -n "$IDENTITY"
+printf 'Signing identity: %s\n' "$IDENTITY"
 ```
 
 Build the app bundle:
