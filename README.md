@@ -2,11 +2,9 @@
 
 Native macOS menu bar controller for using the OBSBOT Smart Remote 2 with an OBSBOT Tiny-series camera.
 
-The app starts remote control when launched. It listens for the remote's enabled keyboard shortcuts, maps them through `Resources/remote-button-capture.json`, and sends camera controls through Apple system frameworks.
+OBSBOT Remote is distributed as a Homebrew cask. The app starts remote control when launched, listens for the remote's enabled keyboard shortcuts, and sends camera controls through Apple system frameworks.
 
-## Install
-
-Install with Homebrew:
+## Install With Homebrew
 
 ```bash
 brew tap jcdoll/tap
@@ -22,9 +20,21 @@ Uninstall:
 brew uninstall --cask obsbot-remote
 ```
 
-## Developer Setup
+## Use
 
-Install Apple's Command Line Tools or Xcode, then validate the Swift package:
+Launch the app:
+
+```bash
+open -a "OBSBOT Remote"
+```
+
+The app starts remote control immediately. Use the menu bar icon to stop or restart control, open the log, or quit.
+
+Normal Homebrew users do not need to run key capture. The app ships with the default Smart Remote 2 keymap.
+
+## Build From Source
+
+Install Apple's Command Line Tools or Xcode, then validate the package:
 
 ```bash
 swift build
@@ -32,14 +42,14 @@ swift run obsbot-remote-self-test
 swift format lint --recursive --strict Package.swift Sources
 ```
 
-Build and run the menu bar app locally:
+Build and run the menu bar app without installing it:
 
 ```bash
 scripts/build-menu-app.sh
 open ".build/OBSBOT Remote.app"
 ```
 
-Install a local development build without Homebrew:
+Install a local source build without Homebrew:
 
 ```bash
 scripts/build-menu-app.sh release
@@ -51,11 +61,9 @@ open "$HOME/Applications/OBSBOT Remote.app"
 
 Local builds are ad-hoc signed for development. Developer ID signing, notarization, GitHub release creation, and Homebrew cask updates are documented in [docs/release.md](docs/release.md).
 
-## Remote Key Setup
+## Remote Keymap Capture
 
-Normal Homebrew users do not need to run key capture. The app ships with the default Smart Remote 2 keymap.
-
-Developers should re-capture the keymap when setting up a different remote revision or changing enabled/disabled button behavior. The keymap lives at `Resources/remote-button-capture.json`.
+Re-capture the keymap when setting up a different remote revision or changing enabled/disabled button behavior. The keymap lives at `Resources/remote-button-capture.json`.
 
 Check local device visibility, then run the guided key capture:
 
@@ -137,17 +145,12 @@ swift run obsbot-remote camera-xu-dump
 swift run obsbot-remote camera-xu-get --unit 2 --selector 6 --length 60
 ```
 
-## Project Layout
+## Documentation
 
-- `Resources/remote-button-capture.json` -- default Smart Remote 2 keymap.
-- `Sources/ObsbotRemoteCore/` -- USB discovery, UVC parsing, camera state, and OBSBOT vendor protocol.
-- `Sources/ObsbotRemoteControl/` -- shared remote button matching and camera action execution.
-- `Sources/ObsbotRemoteCLI/` -- command-line lab bench.
-- `Sources/ObsbotRemoteMenu/` -- menu bar app.
-- `Sources/ObsbotRemoteSelfTest/` -- no-dependency self-test executable.
-- `docs/architecture.md` -- project architecture.
-- `docs/hardware-notes.md` -- observed USB ids, descriptors, and vendor-control notes.
-- `docs/release.md` -- signed app and Homebrew release process.
+- [Architecture](docs/architecture.md)
+- [Hardware notes](docs/hardware-notes.md)
+- [Remote button map](docs/remote-button-map.md)
+- [Release process](docs/release.md)
 
 ## References
 
