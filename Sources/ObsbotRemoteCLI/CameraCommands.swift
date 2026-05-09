@@ -54,6 +54,9 @@ extension CommandLineTool {
             print("panTiltCurrent pan=\(panTilt.pan) tilt=\(panTilt.tilt)")
         }
         printPanTiltRange(controller)
+        if let aiMode = try? controller.readOBSBOTAIMode() {
+            print("aiMode=\(aiMode)")
+        }
     }
 
     func runCameraZoom(arguments: [String]) throws {

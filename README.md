@@ -9,7 +9,7 @@ Current status:
 - remote button capture, dry-run decoding, and foreground live control are working;
 - standard UVC zoom and pan/tilt lab commands are working;
 - OBSBOT vendor extension-unit probing is working;
-- OBSBOT sleep/wake is working through `control` and `camera-power`.
+- OBSBOT sleep/wake is working through `control`; AI tracking mode buttons are mapped for testing.
 
 ## Setup
 
@@ -62,6 +62,7 @@ swift run obsbot-remote uvc-controls
 Use `devices` first to identify the remote dongle and camera vendor/product ids. Use `map-buttons` for guided button capture, `listen` to decode remote input without moving the camera, and `control` when you want the remote to control the camera. Use `hid-sniff` only when you want a raw event stream.
 
 `camera-probe`, `camera-zoom`, `camera-pan-tilt`, and `camera-power` use native UVC control transfers through Apple system frameworks.
+`control` maps the remote's Track, Close-up, Hand Track, and Desk Mode buttons to OBSBOT AI modes.
 
 Observed local hardware ids are tracked in [docs/hardware-notes.md](docs/hardware-notes.md).
 Remote button capture is tracked in [docs/remote-button-map.md](docs/remote-button-map.md).

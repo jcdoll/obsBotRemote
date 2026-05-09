@@ -112,3 +112,4 @@ swift run obsbot-remote camera-power
 
 `listen` prints dry-run actions. `control` executes supported camera actions and prints what it did.
 Holding a gimbal direction button is handled through the remote's repeated terminal arrow sequence in non-seize mode.
+Track, Close-up, Hand Track, and Desk Mode are mapped to OBSBOT AI mode toggles through extension unit 2 selector 6.

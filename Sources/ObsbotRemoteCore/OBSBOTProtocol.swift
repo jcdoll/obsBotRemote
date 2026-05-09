@@ -44,6 +44,66 @@ public enum OBSBOTRunStatus: Equatable, Sendable, CustomStringConvertible {
     }
 }
 
+public enum OBSBOTAIMode: Equatable, Sendable, CustomStringConvertible {
+    case off
+    case humanNormal
+    case humanCloseUp
+    case hand
+    case desk
+    case unknown(statusMode: UInt8, statusSubMode: UInt8)
+
+    public init(statusMode: UInt8, statusSubMode: UInt8) {
+        switch (statusMode, statusSubMode) {
+        case (0, 0):
+            self = .off
+        case (2, 0):
+            self = .humanNormal
+        case (2, 2):
+            self = .humanCloseUp
+        case (3, 0), (6, 0):
+            self = .hand
+        case (5, 0):
+            self = .desk
+        default:
+            self = .unknown(statusMode: statusMode, statusSubMode: statusSubMode)
+        }
+    }
+
+    public var description: String {
+        switch self {
+        case .off:
+            "off"
+        case .humanNormal:
+            "humanNormal"
+        case .humanCloseUp:
+            "humanCloseUp"
+        case .hand:
+            "hand"
+        case .desk:
+            "desk"
+        case let .unknown(mode, subMode):
+            "unknown(mode=\(formatHex(UInt32(mode), width: 2)), subMode=\(formatHex(UInt32(subMode), width: 2)))"
+        }
+    }
+
+    var commandPair: (mode: UInt8, subMode: UInt8)? {
+        switch self {
+        case .off:
+            (0, 0)
+        case .humanNormal:
+            (2, 0)
+        case .humanCloseUp:
+            (2, 2)
+        case .hand:
+            (3, 0)
+        case .desk:
+            (5, 0)
+        case .unknown:
+            nil
+        }
+    }
+}
+
 public enum OBSBOTRemoteProtocol {
     public static let extensionUnitID: UInt8 = 2
     public static let commandSelector: UInt8 = 2
@@ -92,6 +152,19 @@ public enum OBSBOTRemoteProtocol {
         packet[15] = UInt8((bodyCRC >> 8) & 0xFF)
 
         return packet
+    }
+
+    public static func makeAIModePayload(_ mode: OBSBOTAIMode) throws -> [UInt8] {
+        guard let pair = mode.commandPair else {
+            throw UVCRequestError.unsupportedControl("OBSBOT AI mode target \(mode)")
+        }
+
+        var payload = [UInt8](repeating: 0, count: uvcPacketLength)
+        payload[0] = 0x16
+        payload[1] = 0x02
+        payload[2] = pair.mode
+        payload[3] = pair.subMode
+        return payload
     }
 
     public static func crc16(_ bytes: [UInt8]) -> UInt16 {

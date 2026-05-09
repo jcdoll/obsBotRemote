@@ -43,9 +43,12 @@ zoomCurrent=16
 zoomRange min=0 max=100 res=1 default=0
 panTiltCurrent pan=-7200 tilt=-298800
 panTiltRange min=(pan=-468000, tilt=-324000) max=(pan=468000, tilt=324000) res=(pan=3600, tilt=3600) default=(pan=0, tilt=0)
+aiMode=off
 ```
 
 Observed OBSBOT run status is stored in extension unit 2 selector 6, byte offset 9. The sleep/wake command is sent through extension unit 2 selector 2 as a 60-byte vendor packet.
+
+Observed Tiny-series AI mode status is stored in extension unit 2 selector 6 at byte offsets 24 and 28. The SDK's `cameraSetAiModeU(mode, subMode)` writes selector 6 with a 60-byte payload beginning `16 02 <mode> <subMode>`. Current remote mappings use human normal `(2, 0)`, human close-up `(2, 2)`, hand tracking `(3, 0)`, and desk mode `(5, 0)`.
 
 Manual Tiny 3 validation: standard UVC `pan-tilt-abs` moves the physical gimbal; a `36_000` unit step is a visible 10-degree nudge. Live remote control currently uses `18_000` for a smaller nudge.
 

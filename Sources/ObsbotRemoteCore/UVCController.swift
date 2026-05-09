@@ -232,6 +232,22 @@ public final class UVCController {
         return OBSBOTRunStatus(rawValue: bytes[9])
     }
 
+    public func readOBSBOTAIMode() throws -> OBSBOTAIMode {
+        let bytes = try readExtensionUnitCurrent(
+            unitID: OBSBOTRemoteProtocol.extensionUnitID,
+            selector: OBSBOTRemoteProtocol.statusSelector,
+            length: OBSBOTRemoteProtocol.uvcPacketLength
+        )
+        guard bytes.count > 28 else {
+            throw UVCRequestError.shortRead(
+                operation: "GET_CUR OBSBOT AI mode",
+                expected: 29,
+                actual: UInt32(bytes.count)
+            )
+        }
+        return OBSBOTAIMode(statusMode: bytes[24], statusSubMode: bytes[28])
+    }
+
     public func setOBSBOTRunStatus(_ status: OBSBOTRunStatus) throws {
         let packet = try OBSBOTRemoteProtocol.makeDevRunStatusPacket(
             status,
@@ -244,10 +260,26 @@ public final class UVCController {
         )
     }
 
+    public func setOBSBOTAIMode(_ mode: OBSBOTAIMode) throws {
+        let payload = try OBSBOTRemoteProtocol.makeAIModePayload(mode)
+        try setExtensionUnitCurrent(
+            unitID: OBSBOTRemoteProtocol.extensionUnitID,
+            selector: OBSBOTRemoteProtocol.statusSelector,
+            payload: payload
+        )
+    }
+
     public func toggleOBSBOTRunStatus() throws -> (previous: OBSBOTRunStatus, next: OBSBOTRunStatus) {
         let previous = try readOBSBOTRunStatus()
         let next: OBSBOTRunStatus = previous == .run ? .sleep : .run
         try setOBSBOTRunStatus(next)
+        return (previous, next)
+    }
+
+    public func toggleOBSBOTAIMode(_ target: OBSBOTAIMode) throws -> (previous: OBSBOTAIMode, next: OBSBOTAIMode) {
+        let previous = try readOBSBOTAIMode()
+        let next: OBSBOTAIMode = previous == target ? .off : target
+        try setOBSBOTAIMode(next)
         return (previous, next)
     }
 

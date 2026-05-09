@@ -9,7 +9,7 @@ Current status:
 - remote HID capture, guided button mapping, JSON resume/reset, live dry-run decoding, and foreground live control are implemented;
 - standard UVC `zoom-abs` and `pan-tilt-abs` lab commands are implemented through IOUSBLib control transfers;
 - UVC extension-unit parsing and `camera-xu-get`/`camera-xu-dump` are implemented;
-- OBSBOT run/sleep state is implemented through `control` and `camera-power`;
+- OBSBOT run/sleep state is implemented through `control` and AI mode toggles are mapped there for testing;
 - `listen` is dry-run; `control` is live camera control.
 
 ## Repository Layout

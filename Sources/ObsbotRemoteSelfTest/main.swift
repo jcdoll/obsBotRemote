@@ -59,6 +59,11 @@ expect(OBSBOTRunStatus(rawValue: 1) == .run, "OBSBOT run status parse")
 expect(OBSBOTRunStatus(rawValue: 3) == .sleep, "OBSBOT sleep status parse")
 expect(OBSBOTRunStatus(rawValue: 4) == .privacy, "OBSBOT privacy status parse")
 expect(String(describing: OBSBOTRunStatus(rawValue: 9)) == "unknown(0x09)", "OBSBOT unknown status description")
+expect(OBSBOTAIMode(statusMode: 0, statusSubMode: 0) == .off, "OBSBOT AI off status parse")
+expect(OBSBOTAIMode(statusMode: 2, statusSubMode: 0) == .humanNormal, "OBSBOT AI human status parse")
+expect(OBSBOTAIMode(statusMode: 2, statusSubMode: 2) == .humanCloseUp, "OBSBOT AI close-up status parse")
+expect(OBSBOTAIMode(statusMode: 6, statusSubMode: 0) == .hand, "OBSBOT AI hand status parse")
+expect(OBSBOTAIMode(statusMode: 5, statusSubMode: 0) == .desk, "OBSBOT AI desk status parse")
 
 let knownTiny2Header = [
     0xAA, 0x25, 0x16, 0x00, 0x0C, 0x00, 0x00, 0x00,
@@ -83,5 +88,17 @@ expect(
     "OBSBOT sleep packet bytes"
 )
 expect(sleepPacket.dropFirst(20).allSatisfy { $0 == 0 }, "OBSBOT packet padding")
+
+let handPayload = expectNoThrow("build OBSBOT hand AI payload") {
+    try OBSBOTRemoteProtocol.makeAIModePayload(.hand)
+}
+expect(handPayload.count == 60, "OBSBOT AI payload length")
+expect(Array(handPayload.prefix(4)) == [0x16, 0x02, 0x03, 0x00], "OBSBOT hand AI payload bytes")
+expect(handPayload.dropFirst(4).allSatisfy { $0 == 0 }, "OBSBOT AI payload padding")
+
+let deskPayload = expectNoThrow("build OBSBOT desk AI payload") {
+    try OBSBOTRemoteProtocol.makeAIModePayload(.desk)
+}
+expect(Array(deskPayload.prefix(4)) == [0x16, 0x02, 0x05, 0x00], "OBSBOT desk AI payload bytes")
 
 print("self-test passed")

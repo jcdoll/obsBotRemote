@@ -115,8 +115,10 @@ extension CommandLineTool {
             case let .ambiguous(buttons):
                 print("ambiguous \(buttons.joined(separator: " / ")) -> ignored")
             case .unknown:
-                if let heldButton = heldGimbalButton(from: input.terminalBytes) {
-                    runCameraAction(for: heldButton, controller: controller)
+                if let heldInput = heldRemoteInput(from: input.terminalBytes) {
+                    runCameraAction(for: heldInput.button, controller: controller, repeatCount: heldInput.repeatCount)
+                } else if isReleaseOnlyInput(input) {
+                    continue
                 } else {
                     print(
                         "unknown input hid=\(hidSignatureDescription(input.hidEvents)) terminal=\(escapedTerminalBytes(input.terminalBytes))"
@@ -195,8 +197,12 @@ extension CommandLineTool {
             case let .ambiguous(buttons):
                 print("ambiguous \(buttons.joined(separator: " / ")) -> \(dryRunActionDescription(for: buttons[0]))")
             case .unknown:
-                if let heldButton = heldGimbalButton(from: input.terminalBytes) {
-                    print("\(heldButton) -> \(dryRunActionDescription(for: heldButton))")
+                if let heldInput = heldRemoteInput(from: input.terminalBytes) {
+                    for _ in 0..<heldInput.repeatCount {
+                        print("\(heldInput.button) -> \(dryRunActionDescription(for: heldInput.button))")
+                    }
+                } else if isReleaseOnlyInput(input) {
+                    continue
                 } else {
                     print(
                         "unknown input hid=\(hidSignatureDescription(input.hidEvents)) terminal=\(escapedTerminalBytes(input.terminalBytes))"
@@ -390,14 +396,20 @@ extension CommandLineTool {
         return existing.buttons
     }
 
-    private func runCameraAction(for button: String, controller: UVCController) {
-        do {
-            let result = try cameraActionDescription(for: button, controller: controller)
-            print("\(button) -> \(result)")
-        } catch let error as UVCRequestError {
-            print("\(button) -> error: \(error.description)")
-        } catch {
-            print("\(button) -> error: \(error)")
+    private func runCameraAction(
+        for button: String,
+        controller: UVCController,
+        repeatCount: Int = 1
+    ) {
+        for _ in 0..<repeatCount {
+            do {
+                let result = try cameraActionDescription(for: button, controller: controller)
+                print("\(button) -> \(result)")
+            } catch let error as UVCRequestError {
+                print("\(button) -> error: \(error.description)")
+            } catch {
+                print("\(button) -> error: \(error)")
+            }
         }
     }
 
@@ -427,6 +439,14 @@ extension CommandLineTool {
         case "Gimbal Reset":
             try controller.setPanTilt(pan: 0, tilt: 0)
             return "center"
+        case "Track":
+            return try toggleAIMode(controller: controller, target: .humanNormal)
+        case "Close-up":
+            return try toggleAIMode(controller: controller, target: .humanCloseUp)
+        case "Hand Track":
+            return try toggleAIMode(controller: controller, target: .hand)
+        case "Desk Mode":
+            return try toggleAIMode(controller: controller, target: .desk)
         case "Choose Device 1", "Choose Device 2", "Choose Device 3", "Choose Device 4",
              "Laser / Whiteboard click", "Laser / Whiteboard double-click", "Laser / Whiteboard hold",
              "Hyperlink click", "Hyperlink double-click", "Hyperlink hold",
@@ -449,32 +469,74 @@ extension CommandLineTool {
         return "panTilt pan \(current.pan) -> \(nextPan), tilt \(current.tilt) -> \(nextTilt)"
     }
 
+    private func toggleAIMode(
+        controller: UVCController,
+        target: OBSBOTAIMode
+    ) throws -> String {
+        let result = try controller.toggleOBSBOTAIMode(target)
+        return "aiMode \(result.previous) -> \(result.next)"
+    }
+
     private func clampedInt32(_ value: Int64) -> Int32 {
         Int32(max(Int64(Int32.min), min(Int64(Int32.max), value)))
     }
 }
 
-private func heldGimbalButton(from terminalBytes: [UInt8]) -> String? {
+private struct HeldRemoteInput {
+    var button: String
+    var repeatCount: Int
+}
+
+private func heldRemoteInput(from terminalBytes: [UInt8]) -> HeldRemoteInput? {
     let candidates: [(button: String, sequence: [UInt8])] = [
         ("Gimbal Up", [0x1B, 0x1B, 0x5B, 0x41]),
         ("Gimbal Down", [0x1B, 0x1B, 0x5B, 0x42]),
         ("Gimbal Right", [0x1B, 0x1B, 0x5B, 0x43]),
         ("Gimbal Left", [0x1B, 0x1B, 0x5B, 0x44]),
+        ("Gimbal Up", [0x1B, 0x5B, 0x41]),
+        ("Gimbal Down", [0x1B, 0x5B, 0x42]),
+        ("Gimbal Right", [0x1B, 0x5B, 0x43]),
+        ("Gimbal Left", [0x1B, 0x5B, 0x44]),
+        ("Zoom In", [0x1B, 0x30]),
+        ("Zoom Out", [0x1B, 0x06]),
     ]
 
-    return candidates.first { _, sequence in
-        terminalBytes.areRepeatedCopies(of: sequence)
-    }?.button
+    for candidate in candidates {
+        if let repeatCount = terminalBytes.repeatedCopyCount(of: candidate.sequence) {
+            return HeldRemoteInput(button: candidate.button, repeatCount: repeatCount)
+        }
+    }
+    return nil
+}
+
+private func isReleaseOnlyInput(_ input: InputCapture) -> Bool {
+    input.terminalBytes.isEmpty && !input.hidEvents.contains { event in
+        event.state == "down" && event.usage != 1
+    }
 }
 
 private extension [UInt8] {
-    func areRepeatedCopies(of sequence: [UInt8]) -> Bool {
-        guard !isEmpty, !sequence.isEmpty, count % sequence.count == 0 else {
-            return false
+    func repeatedCopyCount(of sequence: [UInt8]) -> Int? {
+        guard !isEmpty, !sequence.isEmpty else {
+            return nil
         }
-        for index in indices where self[index] != sequence[index % sequence.count] {
-            return false
+
+        var index = 0
+        var repeatCount = 0
+        while index + sequence.count <= count {
+            for offset in sequence.indices where self[index + offset] != sequence[offset] {
+                return nil
+            }
+            repeatCount += 1
+            index += sequence.count
         }
-        return true
+
+        let remainder = count - index
+        if remainder > 0 {
+            for offset in 0..<remainder where self[index + offset] != sequence[offset] {
+                return nil
+            }
+        }
+        return repeatCount > 0 ? repeatCount : nil
     }
 }

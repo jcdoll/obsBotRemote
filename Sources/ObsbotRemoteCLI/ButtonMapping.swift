@@ -136,6 +136,14 @@ func dryRunActionDescription(for button: String) -> String {
         return "zoom(delta: -\(defaultRemoteZoomStep))"
     case "On/Off":
         return "powerToggle"
+    case "Track":
+        return "aiModeToggle(humanNormal)"
+    case "Close-up":
+        return "aiModeToggle(humanCloseUp)"
+    case "Hand Track":
+        return "aiModeToggle(hand)"
+    case "Desk Mode":
+        return "aiModeToggle(desk)"
     case "Choose Device 1", "Choose Device 2", "Choose Device 3", "Choose Device 4",
          "Laser / Whiteboard click", "Laser / Whiteboard double-click", "Laser / Whiteboard hold",
          "Hyperlink click", "Hyperlink double-click", "Hyperlink hold",
