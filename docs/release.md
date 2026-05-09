@@ -274,10 +274,12 @@ Test the cask locally:
 
 ```bash
 cd "$(brew --repo jcdoll/tap)"
-brew audit --cask --new obsbot-remote
+brew audit --cask obsbot-remote
 brew install --cask obsbot-remote
 brew uninstall --cask obsbot-remote
 ```
+
+Do not use `brew audit --cask --new` for the personal tap release check. That flag applies upstream Homebrew notability checks and will fail for a small project even when the cask works.
 
 Push the tap:
 
@@ -307,3 +309,4 @@ brew install --cask obsbot-remote
 - `spctl --assess --type execute` accepts the app.
 - GitHub release contains the final stapled archive.
 - Homebrew cask `sha256` matches the final archive.
+- `brew audit --cask obsbot-remote` passes in the tap.
