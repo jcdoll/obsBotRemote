@@ -10,7 +10,7 @@ Current status:
 - the default remote button keymap lives in `Resources/remote-button-capture.json` and supports disabled captures;
 - standard UVC zoom and pan/tilt lab commands are working;
 - OBSBOT vendor extension-unit probing is working;
-- OBSBOT sleep/wake is working through `control`; AI tracking mode buttons are mapped for testing;
+- OBSBOT sleep/wake and AI tracking mode buttons are working through `control`;
 - the menu bar app starts live control on launch and can stop/restart control from the menu.
 
 ## Setup
@@ -100,4 +100,4 @@ For implementation details, see [docs/architecture.md](docs/architecture.md).
 
 ## Distribution Notes
 
-The Swift package exposes separate executables for the CLI, menu bar app, and self-test. `scripts/build-menu-app.sh` wraps the menu executable as a local `.app` bundle. The intended Homebrew path is a cask for the signed menu app bundle. See [docs/release.md](docs/release.md).
+The Swift package exposes separate executables for the CLI, menu bar app, and self-test. `scripts/build-menu-app.sh` wraps the menu executable as a local `.app` bundle. Homebrew distribution uses a cask for the signed menu app bundle. See [docs/release.md](docs/release.md).

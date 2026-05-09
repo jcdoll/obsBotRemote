@@ -1,6 +1,6 @@
 # Architecture
 
-`obsBotRemote` is a native macOS CLI and menu bar controller. It translates known OBSBOT Smart Remote 2 button presses into camera controls for an OBSBOT Tiny 2.
+`obsBotRemote` is a native macOS CLI and menu bar controller. It translates known OBSBOT Smart Remote 2 button presses into camera controls for OBSBOT Tiny-series cameras.
 
 ## Project Shape
 
@@ -27,7 +27,7 @@ camera controller
 IOKit UVC control transfer
         |
         v
-OBSBOT Tiny 2
+OBSBOT Tiny-series camera
 ```
 
 The Swift CLI lists USB devices, sniffs HID events, decodes live remote input, probes UVC descriptors, and can issue native UVC `GET_CUR`/`SET_CUR` requests for `pan-tilt-abs`, `zoom-abs`, and OBSBOT vendor extension-unit controls.
@@ -112,13 +112,11 @@ CI tests stay hardware-free. The project currently uses a no-dependency `obsbot-
 
 CI runs on macOS only because the package imports IOKit.
 
-## Future Extraction Points
+## Planned Extraction Points
 
 Keep the package small until hardware behavior is known:
 
 - `HIDRemoteReader` for CLI IOHIDManager matching, seizure, and callbacks;
 - `RemoteHotKeyReader` for menu-app global shortcut registration;
-- `Keymap` for mapping confirmed HID usage values to camera actions;
-- shared command loop that connects decoded buttons to `UVCController` for CLI and menu use;
-- compact menu bar popover camera controls for non-remote users;
-- Homebrew formula for the CLI/menu runner and a Homebrew cask once there is a signed `.app` bundle.
+- compact menu bar camera controls for non-remote users;
+- injectable IOKit boundaries for broader hardware-free tests.

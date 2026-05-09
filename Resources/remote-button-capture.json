@@ -2,6 +2,7 @@
   "buttons" : [
     {
       "button" : "On\/Off",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -77,6 +78,7 @@
     },
     {
       "button" : "Choose Device 1",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -152,6 +154,7 @@
     },
     {
       "button" : "Choose Device 2",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -227,6 +230,7 @@
     },
     {
       "button" : "Choose Device 3",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -302,6 +306,7 @@
     },
     {
       "button" : "Choose Device 4",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -377,6 +382,7 @@
     },
     {
       "button" : "Preset P1",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -451,6 +457,7 @@
     },
     {
       "button" : "Preset P2",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -526,6 +533,7 @@
     },
     {
       "button" : "Preset P3",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -601,6 +609,7 @@
     },
     {
       "button" : "Gimbal Up",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -678,6 +687,7 @@
     },
     {
       "button" : "Gimbal Down",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -755,6 +765,7 @@
     },
     {
       "button" : "Gimbal Left",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -832,6 +843,7 @@
     },
     {
       "button" : "Gimbal Right",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -909,6 +921,7 @@
     },
     {
       "button" : "Gimbal Reset",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -984,6 +997,7 @@
     },
     {
       "button" : "Zoom In",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -1059,6 +1073,7 @@
     },
     {
       "button" : "Zoom Out",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -1134,6 +1149,7 @@
     },
     {
       "button" : "Track",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -1209,6 +1225,7 @@
     },
     {
       "button" : "Close-up",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -1284,6 +1301,7 @@
     },
     {
       "button" : "Hand Track",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",
@@ -1593,6 +1611,7 @@
     },
     {
       "button" : "Desk Mode",
+      "enabled" : true,
       "events" : [
         {
           "name" : "keyboard.errorRollOver",

@@ -9,7 +9,7 @@ Current status:
 - remote HID capture, guided button mapping, JSON resume/reset, live dry-run decoding, and foreground live control are implemented;
 - standard UVC `zoom-abs` and `pan-tilt-abs` lab commands are implemented through IOUSBLib control transfers;
 - UVC extension-unit parsing and `camera-xu-get`/`camera-xu-dump` are implemented;
-- OBSBOT run/sleep state is implemented through `control` and AI mode toggles are mapped there for testing;
+- OBSBOT run/sleep state and AI mode toggles are implemented through `control`;
 - `listen` is dry-run; `control` is live camera control.
 
 ## Repository Layout
@@ -25,7 +25,6 @@ Current status:
 - `docs/release.md` -- Developer ID, notarization, GitHub release, and Homebrew cask process.
 - `.agents/skills/obsbot-release/` -- repo-local Codex skill for release packaging and distribution work.
 - `scripts/build-menu-app.sh` -- local `.app` bundle builder for menu bar testing.
-- `obsbot-remote-daemon-plan.md` -- initial research plan and hardware-discovery notes. Prefer current docs for status.
 - `.github/workflows/ci.yml` -- macOS Swift build and test.
 
 ## Commands
@@ -81,7 +80,6 @@ Use `swift build --configuration release` before packaging or Homebrew work.
 - Keep `docs/architecture.md` focused on the project boundary, runtime components, and planned extraction points.
 - Keep `docs/hardware-notes.md` current with observed USB ids, UVC descriptors, and external references used to derive vendor controls.
 - Keep `docs/release.md` current with the signed/notarized app and Homebrew cask process.
-- Keep the markdown plan as the source for unresolved research questions, but update it when a direction changes.
 - Describe the current project directly. Do not use historical framing, "growing into" language, or "proof of concept" labels unless quoting an external source.
 - No emojis in code or docs.
 - Commands on single lines unless line wrapping is needed for readability.

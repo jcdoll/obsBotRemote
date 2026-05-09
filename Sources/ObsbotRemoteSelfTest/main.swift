@@ -35,18 +35,6 @@ expect(expectNoThrow("parse decimal") { try parseInteger("1234") } == 1234, "par
 expect(expectNoThrow("parse hex") { try parseInteger("0x1A2B") } == 0x1A2B, "parse hex")
 expect(formatHex(0x2A) == "0x002A", "hex formatting")
 
-let legacyButtonJSON = """
-{
-  "button": "Legacy",
-  "events": [],
-  "skipped": false
-}
-""".data(using: .utf8)!
-let legacyButton = expectNoThrow("decode legacy button capture") {
-    try JSONDecoder().decode(ButtonCapture.self, from: legacyButtonJSON)
-}
-expect(legacyButton.enabled, "legacy button capture defaults enabled")
-
 let disabledButton = ButtonCapture(
     button: "Disabled",
     events: [

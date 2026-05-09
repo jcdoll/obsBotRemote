@@ -47,24 +47,6 @@ public struct ButtonCapture: Codable {
         self.enabled = enabled
     }
 
-    private enum CodingKeys: String, CodingKey {
-        case button
-        case events
-        case terminalBytes
-        case terminalEscaped
-        case skipped
-        case enabled
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        button = try container.decode(String.self, forKey: .button)
-        events = try container.decode([HIDEventRecord].self, forKey: .events)
-        terminalBytes = try container.decodeIfPresent([UInt8].self, forKey: .terminalBytes)
-        terminalEscaped = try container.decodeIfPresent(String.self, forKey: .terminalEscaped)
-        skipped = try container.decode(Bool.self, forKey: .skipped)
-        enabled = try container.decodeIfPresent(Bool.self, forKey: .enabled) ?? true
-    }
 }
 
 public struct HIDEventRecord: Codable {

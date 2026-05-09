@@ -77,8 +77,9 @@ Developer ID Application: ORGANIZATION NAME (TEAMID)
 If Keychain Access shows the Developer ID Application certificate with the private key nested under it, but the certificate is marked **not trusted** and `security find-identity` reports `0 valid identities found`, install Apple's newer Developer ID G2 intermediate certificate:
 
 ```bash
-curl -fsSLo /tmp/DeveloperIDG2CA.cer https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer
-open /tmp/DeveloperIDG2CA.cer
+mkdir -p .build/release-artifacts
+curl -fsSLo .build/release-artifacts/DeveloperIDG2CA.cer https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer
+open .build/release-artifacts/DeveloperIDG2CA.cer
 ```
 
 If Keychain Access asks where to add the Apple intermediate certificate, choose **System** if you have admin rights. The **login** keychain is acceptable if System is not available. Do not choose iCloud.

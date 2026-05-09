@@ -6,7 +6,7 @@ Observed with:
 swift run obsbot-remote devices
 ```
 
-Current local devices:
+Observed hardware:
 
 | Device | Vendor ID | Product ID | USB vendor | USB product |
 |---|---:|---:|---|---|
@@ -31,7 +31,7 @@ Native UVC camera probe:
 swift run obsbot-remote camera-probe
 ```
 
-Observed probe output:
+Example probe output:
 
 ```text
 camera 0x3564:0xFF02
@@ -39,9 +39,9 @@ configurationDescriptorLength=752
 videoControlInterface number=0 alternate=0 protocol=0
 cameraTerminal id=1 interface=0 type=0x0201 controls=zoom-abs, pan-tilt-abs
 extensionUnit id=2 interface=0 guid=9a1e7291-6843-4683-6d92-39bc7906ee49 controls=19 selectors=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22
-zoomCurrent=16
+zoomCurrent=0
 zoomRange min=0 max=100 res=1 default=0
-panTiltCurrent pan=-7200 tilt=-298800
+panTiltCurrent pan=0 tilt=0
 panTiltRange min=(pan=-468000, tilt=-324000) max=(pan=468000, tilt=324000) res=(pan=3600, tilt=3600) default=(pan=0, tilt=0)
 aiMode=off
 ```
@@ -63,7 +63,7 @@ No-op write validations:
 
 ```bash
 swift run obsbot-remote camera-zoom --delta 0
-swift run obsbot-remote camera-pan-tilt --pan -7200 --tilt -298800
+swift run obsbot-remote camera-pan-tilt --pan 0 --tilt 0
 ```
 
 Sleep/wake lab commands:
