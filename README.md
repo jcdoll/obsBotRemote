@@ -34,11 +34,11 @@ swift build --configuration release
 Menu bar app:
 
 ```bash
-swift build
-swift run obsbot-remote-menu
+scripts/build-menu-app.sh
+open ".build/OBSBOT Remote.app"
 ```
 
-Click the menu bar video icon to start or stop live remote control, open the log, or quit.
+Click the menu bar video icon to start or stop live remote control, open the log, or quit. The menu app opens the remote dongle with exclusive HID access so remote button presses do not reach other apps. If Start reports that HID access is not privileged, grant Input Monitoring to OBSBOT Remote in System Settings, then restart the app.
 
 Remote discovery and mapping:
 
@@ -69,7 +69,7 @@ swift run obsbot-remote camera-xu-get --unit 2 --selector 6 --length 60
 swift run obsbot-remote uvc-controls
 ```
 
-Use `devices` first to identify the remote dongle and camera vendor/product ids. Use `map-buttons` for guided button capture, `listen` to decode remote input without moving the camera, and `control` when you want the remote to control the camera. Use `hid-sniff` only when you want a raw event stream.
+Use `devices` first to identify the remote dongle and camera vendor/product ids. Use `map-buttons` for guided button capture, `listen` to decode remote input without moving the camera, and `control` when you want terminal-based remote control. Use `hid-sniff` only when you want a raw event stream.
 
 `camera-probe`, `camera-zoom`, `camera-pan-tilt`, and `camera-power` use native UVC control transfers through Apple system frameworks.
 `control` maps the remote's Track, Close-up, Hand Track, and Desk Mode buttons to OBSBOT AI modes.
@@ -98,4 +98,4 @@ For implementation details, see [docs/architecture.md](docs/architecture.md).
 
 ## Distribution Notes
 
-The Swift package exposes separate executables for the CLI, menu bar app, and self-test. The intended Homebrew path is a formula that installs the CLI and menu runner first; a signed `.app` bundle and Homebrew cask can follow once the menu UI is stable.
+The Swift package exposes separate executables for the CLI, menu bar app, and self-test. `scripts/build-menu-app.sh` wraps the menu executable as a local `.app` bundle. The intended Homebrew path is a formula for the CLI and a cask for the signed menu app bundle.

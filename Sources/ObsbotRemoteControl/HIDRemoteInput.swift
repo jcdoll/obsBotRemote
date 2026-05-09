@@ -1,30 +1,32 @@
 import Foundation
 import IOKit.hid
 
-final class HIDEventCollector: @unchecked Sendable {
+public final class HIDEventCollector: @unchecked Sendable {
     private let lock = NSLock()
     private var events: [HIDEventRecord] = []
 
-    func append(_ event: HIDEventRecord) {
+    public init() {}
+
+    public func append(_ event: HIDEventRecord) {
         lock.withLock {
             events.append(event)
         }
     }
 
-    func reset() {
+    public func reset() {
         lock.withLock {
             events.removeAll()
         }
     }
 
-    func snapshot() -> [HIDEventRecord] {
+    public func snapshot() -> [HIDEventRecord] {
         lock.withLock {
             events
         }
     }
 }
 
-func makeHIDManager(vendorID: UInt32?, productID: UInt32?) -> IOHIDManager {
+public func makeHIDManager(vendorID: UInt32?, productID: UInt32?) -> IOHIDManager {
     let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
     var matching: [String: Any] = [:]
     if let vendorID {
@@ -37,7 +39,7 @@ func makeHIDManager(vendorID: UInt32?, productID: UInt32?) -> IOHIDManager {
     return manager
 }
 
-func hidValueCallback(
+public func hidValueCallback(
     _ context: UnsafeMutableRawPointer?,
     _ result: IOReturn,
     _ sender: UnsafeMutableRawPointer?,
@@ -57,7 +59,7 @@ func hidValueCallback(
     fflush(stdout)
 }
 
-func hidCollectCallback(
+public func hidCollectCallback(
     _ context: UnsafeMutableRawPointer?,
     _ result: IOReturn,
     _ sender: UnsafeMutableRawPointer?,
@@ -70,59 +72,7 @@ func hidCollectCallback(
     collector.append(event)
 }
 
-func captureInputs(
-    collector: HIDEventCollector,
-    seconds: TimeInterval
-) -> InputCapture {
-    collector.reset()
-    var terminalBytes: [UInt8] = []
-    _ = readAvailableTerminalBytes()
-
-    let end = Date().addingTimeInterval(seconds)
-    while true {
-        let remaining = end.timeIntervalSinceNow
-        if remaining <= 0 {
-            return InputCapture(hidEvents: collector.snapshot(), terminalBytes: terminalBytes)
-        }
-        CFRunLoopRunInMode(CFRunLoopMode.defaultMode, min(remaining, 0.25), true)
-        terminalBytes.append(contentsOf: readAvailableTerminalBytes())
-    }
-}
-
-func waitForRemoteInput(
-    collector: HIDEventCollector,
-    window: TimeInterval
-) -> InputCapture? {
-    collector.reset()
-    _ = readAvailableTerminalBytes()
-
-    var terminalBytes: [UInt8] = []
-    while true {
-        CFRunLoopRunInMode(CFRunLoopMode.defaultMode, 0.05, true)
-        let bytes = readAvailableTerminalBytes()
-        if bytes.contains(0x03) || bytes.contains(0x04) {
-            return nil
-        }
-        terminalBytes.append(contentsOf: bytes)
-        if !collector.snapshot().isEmpty || !terminalBytes.isEmpty {
-            break
-        }
-    }
-
-    let end = Date().addingTimeInterval(window)
-    while end.timeIntervalSinceNow > 0 {
-        CFRunLoopRunInMode(CFRunLoopMode.defaultMode, min(end.timeIntervalSinceNow, 0.05), true)
-        let bytes = readAvailableTerminalBytes()
-        if bytes.contains(0x03) || bytes.contains(0x04) {
-            return nil
-        }
-        terminalBytes.append(contentsOf: bytes)
-    }
-
-    return InputCapture(hidEvents: collector.snapshot(), terminalBytes: terminalBytes)
-}
-
-private func makeHIDEventRecord(from value: IOHIDValue) -> HIDEventRecord? {
+func makeHIDEventRecord(from value: IOHIDValue) -> HIDEventRecord? {
     let element = IOHIDValueGetElement(value)
     let usagePage = IOHIDElementGetUsagePage(element)
     let usage = IOHIDElementGetUsage(element)

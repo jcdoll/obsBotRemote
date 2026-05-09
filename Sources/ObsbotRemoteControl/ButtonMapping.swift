@@ -1,62 +1,107 @@
 import Foundation
 
-let defaultRemoteVendorID: UInt32 = 0x1106
-let defaultRemoteProductID: UInt32 = 0xB106
-let defaultRemoteButtonCaptureURL = URL(fileURLWithPath: "docs/remote-button-capture.json")
-let defaultRemoteInputWindow: TimeInterval = 0.35
-let defaultRemotePanTiltStep: Int32 = 18_000
-let defaultRemoteZoomStep = 10
+public let defaultRemoteVendorID: UInt32 = 0x1106
+public let defaultRemoteProductID: UInt32 = 0xB106
+public let defaultRemoteButtonCaptureURL = URL(fileURLWithPath: "docs/remote-button-capture.json")
+public let defaultRemoteInputWindow: TimeInterval = 0.35
+public let defaultRemotePanTiltStep: Int32 = 18_000
+public let defaultRemoteZoomStep = 10
 
-struct ButtonMapCapture: Codable {
-    var capturedAt: String
-    var vendorID: String?
-    var productID: String?
-    var seize: Bool
-    var buttons: [ButtonCapture]
+public struct ButtonMapCapture: Codable {
+    public var capturedAt: String
+    public var vendorID: String?
+    public var productID: String?
+    public var seize: Bool
+    public var buttons: [ButtonCapture]
+
+    public init(capturedAt: String, vendorID: String?, productID: String?, seize: Bool, buttons: [ButtonCapture]) {
+        self.capturedAt = capturedAt
+        self.vendorID = vendorID
+        self.productID = productID
+        self.seize = seize
+        self.buttons = buttons
+    }
 }
 
-struct ButtonCapture: Codable {
-    var button: String
-    var events: [HIDEventRecord]
-    var terminalBytes: [UInt8]?
-    var terminalEscaped: String?
-    var skipped: Bool
+public struct ButtonCapture: Codable {
+    public var button: String
+    public var events: [HIDEventRecord]
+    public var terminalBytes: [UInt8]?
+    public var terminalEscaped: String?
+    public var skipped: Bool
+
+    public init(
+        button: String,
+        events: [HIDEventRecord],
+        terminalBytes: [UInt8]?,
+        terminalEscaped: String?,
+        skipped: Bool
+    ) {
+        self.button = button
+        self.events = events
+        self.terminalBytes = terminalBytes
+        self.terminalEscaped = terminalEscaped
+        self.skipped = skipped
+    }
 }
 
-struct HIDEventRecord: Codable {
-    var usagePage: UInt32
-    var usage: UInt32
-    var value: Int
-    var state: String
-    var name: String
-    var timestamp: TimeInterval
+public struct HIDEventRecord: Codable {
+    public var usagePage: UInt32
+    public var usage: UInt32
+    public var value: Int
+    public var state: String
+    public var name: String
+    public var timestamp: TimeInterval
+
+    public init(usagePage: UInt32, usage: UInt32, value: Int, state: String, name: String, timestamp: TimeInterval) {
+        self.usagePage = usagePage
+        self.usage = usage
+        self.value = value
+        self.state = state
+        self.name = name
+        self.timestamp = timestamp
+    }
 }
 
-struct InputCapture {
-    var hidEvents: [HIDEventRecord]
-    var terminalBytes: [UInt8]
+public struct InputCapture {
+    public var hidEvents: [HIDEventRecord]
+    public var terminalBytes: [UInt8]
+
+    public init(hidEvents: [HIDEventRecord], terminalBytes: [UInt8]) {
+        self.hidEvents = hidEvents
+        self.terminalBytes = terminalBytes
+    }
 }
 
-struct HIDUsage: Hashable {
-    var usagePage: UInt32
-    var usage: UInt32
+public struct HIDUsage: Hashable {
+    public var usagePage: UInt32
+    public var usage: UInt32
+
+    public init(usagePage: UInt32, usage: UInt32) {
+        self.usagePage = usagePage
+        self.usage = usage
+    }
 }
 
-struct HIDSignature: Hashable {
-    var usages: [HIDUsage]
+public struct HIDSignature: Hashable {
+    public var usages: [HIDUsage]
+
+    public init(usages: [HIDUsage]) {
+        self.usages = usages
+    }
 }
 
-enum RemoteButtonMatch {
+public enum RemoteButtonMatch {
     case matched(String)
     case ambiguous([String])
     case unknown
 }
 
-struct RemoteButtonMatcher {
+public struct RemoteButtonMatcher {
     private var terminalMatches: [[UInt8]: String] = [:]
     private var hidMatches: [HIDSignature: [String]] = [:]
 
-    init(captures: [ButtonCapture]) {
+    public init(captures: [ButtonCapture]) {
         for capture in captures where !capture.skipped {
             if let terminalBytes = capture.terminalBytes, !terminalBytes.isEmpty {
                 terminalMatches[terminalBytes] = capture.button
@@ -68,7 +113,7 @@ struct RemoteButtonMatcher {
         }
     }
 
-    func match(_ input: InputCapture) -> RemoteButtonMatch {
+    public func match(_ input: InputCapture) -> RemoteButtonMatch {
         if !input.terminalBytes.isEmpty, let button = terminalMatches[input.terminalBytes] {
             return .matched(button)
         }
@@ -86,7 +131,7 @@ struct RemoteButtonMatcher {
     }
 }
 
-func upsertButtonCapture(_ capture: ButtonCapture, in captures: inout [ButtonCapture]) {
+public func upsertButtonCapture(_ capture: ButtonCapture, in captures: inout [ButtonCapture]) {
     if let index = captures.firstIndex(where: { $0.button == capture.button }) {
         captures[index] = capture
     } else {
@@ -94,7 +139,7 @@ func upsertButtonCapture(_ capture: ButtonCapture, in captures: inout [ButtonCap
     }
 }
 
-func buttonCaptureSummary(_ capture: ButtonCapture) -> String {
+public func buttonCaptureSummary(_ capture: ButtonCapture) -> String {
     if capture.skipped {
         return "(skipped)"
     }
@@ -102,7 +147,7 @@ func buttonCaptureSummary(_ capture: ButtonCapture) -> String {
     return "(\(capture.events.count) HID event(s), \(terminalCount) terminal byte(s))"
 }
 
-func hidSignatureDescription(_ events: [HIDEventRecord]) -> String {
+public func hidSignatureDescription(_ events: [HIDEventRecord]) -> String {
     let signature = hidSignature(from: events)
     guard !signature.usages.isEmpty else {
         return "none"
@@ -112,7 +157,7 @@ func hidSignatureDescription(_ events: [HIDEventRecord]) -> String {
         .joined(separator: ",")
 }
 
-func dryRunActionDescription(for button: String) -> String {
+public func dryRunActionDescription(for button: String) -> String {
     switch button {
     case "Preset P1":
         return "recallPreset(P1)"
@@ -154,7 +199,7 @@ func dryRunActionDescription(for button: String) -> String {
     }
 }
 
-let remoteButtonNames = [
+public let remoteButtonNames = [
     "On/Off",
     "Choose Device 1",
     "Choose Device 2",

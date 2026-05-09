@@ -1,4 +1,5 @@
 import Foundation
+import ObsbotRemoteControl
 import ObsbotRemoteCore
 
 struct HIDSniffOptions {

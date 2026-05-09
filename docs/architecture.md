@@ -43,6 +43,13 @@ The Swift CLI lists USB devices, sniffs HID events, decodes live remote input, p
 - OBSBOT vendor packet construction;
 - direct USB control requests exposed through `UVCController`.
 
+`ObsbotRemoteControl` owns shared live-control logic:
+
+- remote button capture models and matching;
+- HID manager helpers and event collection;
+- remote-button to camera-action mapping;
+- exclusive-HID live control session used by the menu app.
+
 `ObsbotRemoteUSBBridge` is a small C target that wraps IOUSBLib calls needed for USB configuration descriptors and control requests. Swift owns the UVC parsing and command decisions.
 
 `ObsbotRemoteCLI` owns operator commands:
@@ -59,15 +66,14 @@ The Swift CLI lists USB devices, sniffs HID events, decodes live remote input, p
 - `camera-xu-get` and `camera-xu-dump` inspect UVC extension-unit selectors;
 - `uvc-controls` reports the native UVC implementation status.
 
-`ObsbotRemoteMenu` owns the menu bar app. It runs as an accessory app, shows a menu bar popover, starts/stops `obsbot-remote control`, and displays process logs. It spawns the CLI so the live control path stays in one place.
+`ObsbotRemoteMenu` owns the menu bar app. It runs as an accessory app, shows a menu bar popover, starts/stops the shared live control session, and displays logs. It requires exclusive HID access before starting so remote button presses do not reach other apps.
 
 CLI implementation is split by concern:
 
 - `main.swift` owns process startup and error handling;
 - `CommandLineTool.swift` owns command dispatch and help text;
 - `CommandOptions.swift` owns argument parsing;
-- `HIDCommands.swift`, `HIDRemoteInput.swift`, and `TerminalInput.swift` own remote capture and terminal input;
-- `ButtonMapping.swift` owns capture JSON models, matching, and dry-run action labels;
+- `HIDCommands.swift`, `CLIRemoteInput.swift`, and `TerminalInput.swift` own CLI remote capture and terminal input;
 - `CameraCommands.swift` owns camera-facing lab commands.
 
 ## Lab Bench Strategy
@@ -80,9 +86,9 @@ swift run obsbot-remote devices
 swift run obsbot-remote map-buttons
 swift run obsbot-remote control
 swift run obsbot-remote listen
-swift run obsbot-remote-menu
 swift run obsbot-remote camera-probe
 swift run obsbot-remote camera-power status
+scripts/build-menu-app.sh
 ```
 
 ## External References
@@ -98,7 +104,7 @@ These references informed the current UVC extension-unit work:
 
 The tool controls camera state but must not take ownership of the video stream. Zoom, Meet, OBS, and other apps should still use the camera while this tool adjusts supported controls.
 
-HID device seizure prevents remote keypresses from leaking into the focused app. macOS may require user approval for input monitoring or related privacy permissions.
+HID device seizure prevents remote keypresses from leaking into the focused app. The menu app requires seizure for live control. macOS may require user approval for Input Monitoring.
 
 ## Test Strategy
 
@@ -112,7 +118,6 @@ Keep the package small until hardware behavior is known:
 
 - `HIDRemoteReader` for IOHIDManager matching, seizure, and callbacks;
 - `Keymap` for mapping confirmed HID usage values to camera actions;
-- shared command loop that connects decoded buttons to `UVCController`;
-- shared control loop that both the CLI and menu app can call directly;
+- shared command loop that connects decoded buttons to `UVCController` for CLI and menu use;
 - compact menu bar popover camera controls for non-remote users;
 - Homebrew formula for the CLI/menu runner and a Homebrew cask once there is a signed `.app` bundle.

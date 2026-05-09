@@ -1,6 +1,6 @@
 import AppKit
-import Darwin
 import Foundation
+import ObsbotRemoteControl
 import SwiftUI
 
 @main
@@ -23,6 +23,7 @@ private final class MenuAppDelegate: NSObject, NSApplicationDelegate {
     private let runner = RemoteControlRunner()
     private let popover = NSPopover()
     private var statusItem: NSStatusItem?
+    private var keyEventMonitor: Any?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -37,10 +38,17 @@ private final class MenuAppDelegate: NSObject, NSApplicationDelegate {
         popover.behavior = .transient
         popover.contentSize = NSSize(width: 360, height: 420)
         popover.contentViewController = NSHostingController(rootView: RemotePopoverView(runner: runner))
+
+        keyEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp, .flagsChanged]) { event in
+            event.modifierFlags.contains(.command) ? event : nil
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         runner.stop()
+        if let keyEventMonitor {
+            NSEvent.removeMonitor(keyEventMonitor)
+        }
     }
 
     @objc private func togglePopover(_ sender: AnyObject?) {
@@ -62,87 +70,49 @@ private final class RemoteControlRunner: ObservableObject {
     @Published private(set) var isRunning = false
     @Published private(set) var logText = ""
 
-    private var process: Process?
-    private var stdoutPipe: Pipe?
-    private var stderrPipe: Pipe?
-    private var standardInput: FileHandle?
+    private var session: RemoteControlSession?
     private var logWindow: NSWindow?
     private var logWindowDelegate: LogWindowDelegate?
-    private var forceStopWorkItem: DispatchWorkItem?
 
     func start() {
         guard !isRunning else {
             appendSystemLog("remote control is already running")
             return
         }
-        guard let launch = resolveControlLaunch() else {
-            status = "Cannot find obsbot-remote"
-            appendSystemLog("could not find obsbot-remote; run swift build or install the CLI on PATH")
-            return
-        }
 
-        let process = Process()
-        process.executableURL = launch.executableURL
-        process.arguments = launch.arguments
-        process.currentDirectoryURL = launch.currentDirectoryURL
-
-        let stdoutPipe = Pipe()
-        let stderrPipe = Pipe()
-        process.standardOutput = stdoutPipe
-        process.standardError = stderrPipe
-
-        let standardInput = FileHandle(forReadingAtPath: "/dev/null")
-        process.standardInput = standardInput
-
-        attach(pipe: stdoutPipe)
-        attach(pipe: stderrPipe)
-
-        process.terminationHandler = { [weak self] finishedProcess in
-            Task { @MainActor in
-                self?.processDidExit(finishedProcess)
+        let session = RemoteControlSession(
+            configuration: RemoteControlSessionConfiguration(requireSeize: true)
+        ) { [weak self] message in
+            Task { @MainActor [weak self] in
+                self?.appendControlLog(message)
             }
         }
 
         do {
-            appendSystemLog("starting \(launch.description)")
-            try process.run()
-            self.process = process
-            self.stdoutPipe = stdoutPipe
-            self.stderrPipe = stderrPipe
-            self.standardInput = standardInput
+            appendSystemLog("starting live remote control")
+            try session.start()
+            self.session = session
             isRunning = true
             status = "Running"
         } catch {
-            detachPipes()
-            status = "Failed to start"
+            status = "Start failed"
             appendSystemLog("failed to start remote control: \(error)")
         }
     }
 
     func stop() {
-        forceStopWorkItem?.cancel()
-        forceStopWorkItem = nil
-
-        guard let process, process.isRunning else {
-            processDidExit(process)
+        guard let session else {
+            isRunning = false
+            status = "Stopped"
             return
         }
 
         status = "Stopping"
         appendSystemLog("stopping remote control")
-        kill(process.processIdentifier, SIGINT)
-
-        let workItem = DispatchWorkItem { [weak self, weak process] in
-            guard let process, process.isRunning else {
-                return
-            }
-            Task { @MainActor in
-                self?.appendSystemLog("forcing remote control to stop")
-            }
-            kill(process.processIdentifier, SIGKILL)
-        }
-        forceStopWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: workItem)
+        session.stop()
+        self.session = nil
+        isRunning = false
+        status = "Stopped"
     }
 
     func showLogWindow() {
@@ -174,45 +144,12 @@ private final class RemoteControlRunner: ObservableObject {
         NSApp.terminate(nil)
     }
 
-    private func processDidExit(_ finishedProcess: Process?) {
-        forceStopWorkItem?.cancel()
-        forceStopWorkItem = nil
-        detachPipes()
-
-        if let finishedProcess {
-            appendSystemLog("remote control exited with status \(finishedProcess.terminationStatus)")
-        }
-
-        if finishedProcess == nil || finishedProcess === process {
-            process = nil
-            stdoutPipe = nil
-            stderrPipe = nil
-            standardInput = nil
-            isRunning = false
-            status = "Stopped"
-        }
-    }
-
-    private func attach(pipe: Pipe) {
-        pipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
-            let data = handle.availableData
-            guard !data.isEmpty else {
-                return
-            }
-            let text = String(decoding: data, as: UTF8.self)
-            Task { @MainActor in
-                self?.appendRawLog(text)
-            }
-        }
-    }
-
-    private func detachPipes() {
-        stdoutPipe?.fileHandleForReading.readabilityHandler = nil
-        stderrPipe?.fileHandleForReading.readabilityHandler = nil
-    }
-
     private func appendSystemLog(_ message: String) {
         appendRawLog("[\(Self.timestampFormatter.string(from: Date()))] \(message)\n")
+    }
+
+    private func appendControlLog(_ message: String) {
+        appendRawLog(message.hasSuffix("\n") ? message : message + "\n")
     }
 
     private func appendRawLog(_ text: String) {
@@ -224,74 +161,11 @@ private final class RemoteControlRunner: ObservableObject {
         }
     }
 
-    private func resolveControlLaunch() -> ControlLaunch? {
-        let executableURL = Bundle.main.executableURL
-            ?? URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL
-        let executableDirectory = executableURL.deletingLastPathComponent()
-        let sibling = executableDirectory.appendingPathComponent("obsbot-remote")
-
-        if isExecutableFile(sibling.path) {
-            return ControlLaunch(
-                executableURL: sibling,
-                arguments: ["control"],
-                currentDirectoryURL: nil,
-                description: "\(sibling.path) control"
-            )
-        }
-
-        if let pathExecutable = findExecutableOnPath(named: "obsbot-remote") {
-            return ControlLaunch(
-                executableURL: pathExecutable,
-                arguments: ["control"],
-                currentDirectoryURL: nil,
-                description: "\(pathExecutable.path) control"
-            )
-        }
-
-        let currentDirectory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-        let packageManifest = currentDirectory.appendingPathComponent("Package.swift")
-        if FileManager.default.fileExists(atPath: packageManifest.path) {
-            return ControlLaunch(
-                executableURL: URL(fileURLWithPath: "/usr/bin/swift"),
-                arguments: ["run", "obsbot-remote", "control"],
-                currentDirectoryURL: currentDirectory,
-                description: "swift run obsbot-remote control"
-            )
-        }
-
-        return nil
-    }
-
-    private func isExecutableFile(_ path: String) -> Bool {
-        var isDirectory: ObjCBool = false
-        return FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
-            && !isDirectory.boolValue
-            && FileManager.default.isExecutableFile(atPath: path)
-    }
-
-    private func findExecutableOnPath(named name: String) -> URL? {
-        let path = ProcessInfo.processInfo.environment["PATH"] ?? ""
-        for directory in path.split(separator: ":") {
-            let candidate = URL(fileURLWithPath: String(directory)).appendingPathComponent(name)
-            if isExecutableFile(candidate.path) {
-                return candidate
-            }
-        }
-        return nil
-    }
-
     private static let timestampFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss"
         return formatter
     }()
-}
-
-private struct ControlLaunch {
-    var executableURL: URL
-    var arguments: [String]
-    var currentDirectoryURL: URL?
-    var description: String
 }
 
 private struct RemotePopoverView: View {

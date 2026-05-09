@@ -16,10 +16,12 @@ Current status:
 
 - `Package.swift` -- Swift Package Manager manifest.
 - `Sources/ObsbotRemoteCore/` -- testable core types, USB discovery, camera state, UVC parsing, OBSBOT vendor protocol, and UVC control facade.
+- `Sources/ObsbotRemoteControl/` -- shared remote button models, HID capture helpers, and live camera-control runtime.
 - `Sources/ObsbotRemoteCLI/` -- CLI lab bench split by command dispatch, options, HID input, terminal input, button mapping, and camera commands.
-- `Sources/ObsbotRemoteMenu/` -- menu bar app that starts/stops the CLI control loop and displays logs.
+- `Sources/ObsbotRemoteMenu/` -- menu bar app that starts/stops live remote control and displays logs.
 - `Sources/ObsbotRemoteSelfTest/` -- no-dependency self-test executable for bare Command Line Tools installs.
 - `docs/` -- architecture and operational notes.
+- `scripts/build-menu-app.sh` -- local `.app` bundle builder for menu bar testing.
 - `obsbot-remote-daemon-plan.md` -- initial research plan and hardware-discovery notes. Prefer current docs for status.
 - `.github/workflows/ci.yml` -- macOS Swift build and test.
 
@@ -34,7 +36,6 @@ swift run obsbot-remote map-buttons
 swift run obsbot-remote map-buttons --reset
 swift run obsbot-remote control
 swift run obsbot-remote listen
-swift run obsbot-remote-menu
 swift run obsbot-remote hid-sniff --vendor-id 0x1106 --product-id 0xB106
 swift run obsbot-remote camera-probe
 swift run obsbot-remote camera-zoom
@@ -47,6 +48,7 @@ swift run obsbot-remote camera-power off
 swift run obsbot-remote camera-xu-dump
 swift run obsbot-remote camera-xu-get --unit 2 --selector 6 --length 60
 swift run obsbot-remote uvc-controls
+scripts/build-menu-app.sh
 ```
 
 Use `swift build --configuration release` before packaging or Homebrew work.
@@ -60,7 +62,8 @@ Use `swift build --configuration release` before packaging or Homebrew work.
 - Keep `Sources/ObsbotRemoteCLI/main.swift` as process startup only. Add command behavior to focused files or `CommandLineTool` extensions.
 - Keep `UVCController` as the high-level camera facade. Put descriptor parsing and OBSBOT packet construction in their dedicated core files.
 - Unknown remote buttons should do nothing until keycodes are confirmed with the real dongle.
-- Keep the CLI useful as a lab bench. Every hardware-discovery command should be directly reusable while building the menu app.
+- Keep the CLI useful as a lab bench. Hardware-discovery commands should stay directly reusable.
+- Keep the menu app on the shared control runtime. It should not spawn the CLI for live control.
 
 ## Safety
 
