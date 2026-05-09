@@ -31,6 +31,46 @@ xcode-select -p
 xcrun notarytool --version
 ```
 
+## Create the Developer ID Application Certificate
+
+Do this once per signing certificate. The certificate must be created from a Certificate Signing Request (CSR) generated on the Mac that will sign releases, because the private key stays in that Mac's keychain.
+
+Create the CSR on the signing Mac:
+
+1. Open **Keychain Access**.
+2. In the menu bar, choose **Keychain Access > Certificate Assistant > Request a Certificate From a Certificate Authority...**.
+3. Enter the Apple ID email address for the developer account.
+4. Enter a generic common name, such as `OBSBOT Remote Developer ID`.
+5. Leave **CA Email Address** blank.
+6. Select **Saved to disk**.
+7. Select **Let me specify key pair information** if that option is shown.
+8. Save the `.certSigningRequest` file.
+9. If prompted for key pair information, use `2048 bits` and `RSA`.
+
+Create the certificate on the Apple Developer website:
+
+1. Open `developer.apple.com/account`.
+2. Open **Certificates, Identifiers & Profiles**.
+3. In the sidebar, open **Certificates**.
+4. Click **+** to create a certificate.
+5. Choose **Developer ID Application**.
+6. On the **Select a Developer ID Certificate Intermediary** page, keep **G2 Sub-CA (Xcode 11.4.1 or later)** selected unless you need to sign for older macOS tooling.
+7. Upload the `.certSigningRequest` file from the Mac.
+8. Generate and download the `.cer` file.
+9. Double-click the `.cer` file on the same Mac to install it in Keychain Access.
+
+Verify the installed signing identity:
+
+```bash
+security find-identity -v -p codesigning | grep "Developer ID Application"
+```
+
+Expected shape:
+
+```text
+Developer ID Application: ORGANIZATION NAME (TEAMID)
+```
+
 ## One-Time Notary Setup
 
 Create a keychain profile for `notarytool`. This stores the Apple credentials in the local keychain so release commands do not need passwords on the command line.
