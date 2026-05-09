@@ -24,16 +24,27 @@ final class CameraControlsViewModel: ObservableObject {
   }
 
   private let coordinator: CameraControlCoordinator
+  private let log: @MainActor (String) -> Void
   private var pendingOperationCount = 0
+  private var queuedRefresh: Task<Void, Never>?
+  private var readbackGeneration = 0
 
-  init(coordinator: CameraControlCoordinator) {
+  init(
+    coordinator: CameraControlCoordinator,
+    log: @escaping @MainActor (String) -> Void = { _ in }
+  ) {
     self.coordinator = coordinator
+    self.log = log
     let settings = coordinator.currentSettings()
     panTiltStep = Int(settings.panTiltStep)
     zoomStep = settings.zoomStep
   }
 
   func refresh(showBusy: Bool = true, completion: (@MainActor () -> Void)? = nil) {
+    queuedRefresh?.cancel()
+    queuedRefresh = nil
+    let generation = readbackGeneration
+
     if showBusy {
       beginBusy()
     }
@@ -45,9 +56,11 @@ final class CameraControlsViewModel: ObservableObject {
 
       switch result {
       case .success(let snapshot):
-        self.apply(snapshot)
-        if self.actionText == "Ready." {
-          self.actionText = "Camera ready."
+        if generation == self.readbackGeneration {
+          self.apply(snapshot)
+          if self.actionText == "Ready." {
+            self.actionText = "Camera ready."
+          }
         }
       case .failure(let message):
         self.actionText = "Camera error: \(message)"
@@ -61,15 +74,15 @@ final class CameraControlsViewModel: ObservableObject {
   }
 
   func wake() {
-    runCommand(coordinator.wake)
+    runCommand(coordinator.wake, coalescedRefresh: false)
   }
 
   func sleep() {
-    runCommand(coordinator.sleep)
+    runCommand(coordinator.sleep, coalescedRefresh: false)
   }
 
   func center() {
-    runCommand(coordinator.center)
+    runCommand(coordinator.center, coalescedRefresh: false)
   }
 
   func move(_ direction: CameraControlDirection) {
@@ -79,30 +92,49 @@ final class CameraControlsViewModel: ObservableObject {
   }
 
   func zoomIn() {
-    runCommand(coordinator.zoomIn)
+    invalidateReadback()
+    let target = displayedZoomTarget(delta: zoomStep)
+    applyDisplayedZoom(target)
+    runCommand(coordinator.zoomIn, refreshOnSuccess: false)
   }
 
   func zoomOut() {
-    runCommand(coordinator.zoomOut)
+    invalidateReadback()
+    let target = displayedZoomTarget(delta: -zoomStep)
+    applyDisplayedZoom(target)
+    runCommand(coordinator.zoomOut, refreshOnSuccess: false)
   }
 
   func setZoomFromSlider() {
+    invalidateReadback()
     let target = Int(zoomValue.rounded())
-    runCommand { completion in
-      coordinator.setZoom(target, completion: completion)
-    }
+    applyDisplayedZoom(target)
+    runCommand(
+      { completion in
+        coordinator.setZoom(target, completion: completion)
+      },
+      refreshOnSuccess: false
+    )
   }
 
   func setAIMode(_ choice: CameraAIModeChoice) {
-    runCommand { completion in
-      coordinator.setAIMode(choice.mode, completion: completion)
-    }
+    invalidateReadback()
+    aiModeChoice = choice
+    aiModeText = choice.title
+    runCommand(
+      { completion in
+        coordinator.setAIMode(choice.mode, completion: completion)
+      },
+      refreshOnSuccess: false
+    )
   }
 
   private func runCommand(
     _ command: (
       @escaping @MainActor @Sendable (CameraControlCommandResult<String>) -> Void
-    ) -> Void
+    ) -> Void,
+    refreshOnSuccess: Bool = true,
+    coalescedRefresh: Bool = true
   ) {
     beginBusy()
     command { [weak self] result in
@@ -112,16 +144,56 @@ final class CameraControlsViewModel: ObservableObject {
       switch result {
       case .success(let message):
         self.actionText = message
-        self.refresh(showBusy: false) {
+        self.log(message)
+        guard refreshOnSuccess else {
           self.finishBusy()
+          return
+        }
+        self.finishBusy()
+        if coalescedRefresh {
+          self.scheduleRefresh()
+        } else {
+          self.refresh(showBusy: false)
         }
       case .failure(let message):
         self.actionText = "Camera error: \(message)"
+        self.log("Camera error: \(message)")
         self.refresh(showBusy: false) {
           self.finishBusy()
         }
       }
     }
+  }
+
+  private func displayedZoomTarget(delta: Int) -> Int {
+    let current = Int(zoomValue.rounded())
+    return max(Int(zoomRange.lowerBound), min(current + delta, Int(zoomRange.upperBound)))
+  }
+
+  private func applyDisplayedZoom(_ zoom: Int) {
+    zoomValue = Double(zoom)
+    zoomText = "Zoom \(zoom)"
+  }
+
+  private func scheduleRefresh() {
+    cancelQueuedRefresh()
+    queuedRefresh = Task { @MainActor [weak self] in
+      try? await Task.sleep(for: .milliseconds(250))
+      guard !Task.isCancelled else {
+        return
+      }
+      self?.refresh(showBusy: false)
+    }
+  }
+
+  private func cancelQueuedRefresh() {
+    queuedRefresh?.cancel()
+    queuedRefresh = nil
+  }
+
+  private func invalidateReadback() {
+    cancelQueuedRefresh()
+    readbackGeneration += 1
   }
 
   private func apply(_ snapshot: CameraControlSnapshot) {
@@ -153,7 +225,11 @@ struct CameraControlsWindowView: View {
 
   init(runner: RemoteControlRunner, coordinator: CameraControlCoordinator) {
     self.runner = runner
-    _viewModel = StateObject(wrappedValue: CameraControlsViewModel(coordinator: coordinator))
+    _viewModel = StateObject(
+      wrappedValue: CameraControlsViewModel(coordinator: coordinator) { [weak runner] message in
+        runner?.appendCameraControlLog(message)
+      }
+    )
   }
 
   var body: some View {
@@ -218,7 +294,6 @@ struct CameraControlsWindowView: View {
       }
     }
     .buttonStyle(.bordered)
-    .disabled(viewModel.isBusy)
   }
 
   private var gimbalAndSteps: some View {
@@ -242,7 +317,6 @@ struct CameraControlsWindowView: View {
       }
       Spacer(minLength: 0)
     }
-    .disabled(viewModel.isBusy)
   }
 
   private var dPad: some View {
@@ -252,6 +326,8 @@ struct CameraControlsWindowView: View {
           .frame(width: 42, height: 32)
         iconButton("arrow.up", help: "Move up") {
           viewModel.move(.up)
+        } repeatAction: {
+          viewModel.move(.up)
         }
         Spacer()
           .frame(width: 42, height: 32)
@@ -259,11 +335,15 @@ struct CameraControlsWindowView: View {
       GridRow {
         iconButton("arrow.left", help: "Move left") {
           viewModel.move(.left)
+        } repeatAction: {
+          viewModel.move(.left)
         }
         iconButton("scope", help: "Center") {
           viewModel.center()
         }
         iconButton("arrow.right", help: "Move right") {
+          viewModel.move(.right)
+        } repeatAction: {
           viewModel.move(.right)
         }
       }
@@ -271,6 +351,8 @@ struct CameraControlsWindowView: View {
         Spacer()
           .frame(width: 42, height: 32)
         iconButton("arrow.down", help: "Move down") {
+          viewModel.move(.down)
+        } repeatAction: {
           viewModel.move(.down)
         }
         Spacer()
@@ -293,6 +375,8 @@ struct CameraControlsWindowView: View {
       HStack(spacing: 10) {
         iconButton("minus", help: "Zoom out") {
           viewModel.zoomOut()
+        } repeatAction: {
+          viewModel.zoomOut()
         }
         Slider(
           value: Binding(
@@ -309,10 +393,11 @@ struct CameraControlsWindowView: View {
         )
         iconButton("plus", help: "Zoom in") {
           viewModel.zoomIn()
+        } repeatAction: {
+          viewModel.zoomIn()
         }
       }
     }
-    .disabled(viewModel.isBusy)
   }
 
   private var aiModeControls: some View {
@@ -340,7 +425,6 @@ struct CameraControlsWindowView: View {
       .pickerStyle(.segmented)
       .labelsHidden()
     }
-    .disabled(viewModel.isBusy)
   }
 
   private var footer: some View {
@@ -354,13 +438,16 @@ struct CameraControlsWindowView: View {
     .frame(minHeight: 32, alignment: .topLeading)
   }
 
-  private func iconButton(_ symbol: String, help: String, action: @escaping () -> Void) -> some View
-  {
-    Button(action: action) {
+  private func iconButton(
+    _ symbol: String,
+    help: String,
+    action: @escaping @MainActor @Sendable () -> Void,
+    repeatAction: (@MainActor @Sendable () -> Void)? = nil
+  ) -> some View {
+    RepeatButton(action: action, repeatAction: repeatAction) {
       Image(systemName: symbol)
         .frame(width: 28, height: 18)
     }
-    .buttonStyle(.bordered)
     .help(help)
   }
 
@@ -373,6 +460,58 @@ struct CameraControlsWindowView: View {
         .foregroundStyle(.secondary)
     }
     .frame(width: 170)
+  }
+}
+
+private struct RepeatButton<Label: View>: View {
+  var action: @MainActor @Sendable () -> Void
+  var repeatAction: (@MainActor @Sendable () -> Void)?
+  @ViewBuilder var label: () -> Label
+
+  @State private var timer: Timer?
+  @State private var isPressed = false
+
+  var body: some View {
+    Button(action: {}) {
+      label()
+    }
+    .buttonStyle(.bordered)
+    .simultaneousGesture(
+      DragGesture(minimumDistance: 0)
+        .onChanged { _ in
+          startRepeatingIfNeeded()
+        }
+        .onEnded { _ in
+          stopRepeating()
+        }
+    )
+    .onDisappear {
+      stopRepeating()
+    }
+  }
+
+  private func startRepeatingIfNeeded() {
+    guard !isPressed else {
+      return
+    }
+    isPressed = true
+    action()
+
+    guard timer == nil, let repeatAction else {
+      return
+    }
+    timer = Timer.scheduledTimer(withTimeInterval: 0.18, repeats: true) { _ in
+      Task { @MainActor in
+        repeatAction()
+      }
+    }
+    timer?.fireDate = Date().addingTimeInterval(0.25)
+  }
+
+  private func stopRepeating() {
+    isPressed = false
+    timer?.invalidate()
+    timer = nil
   }
 }
 

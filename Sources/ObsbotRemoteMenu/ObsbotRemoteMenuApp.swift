@@ -225,6 +225,10 @@ final class RemoteControlRunner: ObservableObject {
     NSApp.terminate(nil)
   }
 
+  func appendCameraControlLog(_ message: String) {
+    appendControlLog("Camera Controls: \(message)")
+  }
+
   private func appendSystemLog(_ message: String) {
     appendRawLog("[\(Self.timestampFormatter.string(from: Date()))] \(message)\n")
   }
