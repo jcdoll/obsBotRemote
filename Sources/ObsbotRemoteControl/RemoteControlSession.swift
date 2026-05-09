@@ -35,8 +35,10 @@ public enum RemoteControlSessionError: Error, CustomStringConvertible {
         case let .hidOpenFailed(code, seize):
             let access = seize ? "exclusive" : "shared"
             var message = "failed to open remote HID device for \(access) access: \(formatIOReturn(code))"
-            if code == kIOReturnNotPrivileged {
+            if code == kIOReturnNotPrivileged && seize {
                 message += " (not privileged; grant Input Monitoring to the app and restart it)"
+            } else if code == kIOReturnNotPrivileged {
+                message += " (not privileged)"
             }
             return message
         }

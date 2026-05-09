@@ -42,8 +42,6 @@ cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
   <string>13.0</string>
   <key>LSUIElement</key>
   <true/>
-  <key>NSInputMonitoringUsageDescription</key>
-  <string>OBSBOT Remote needs input monitoring to exclusively capture the OBSBOT Smart Remote and prevent button presses from reaching other apps.</string>
 </dict>
 </plist>
 PLIST

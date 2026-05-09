@@ -12,7 +12,7 @@ The project uses Apple system frameworks for remote input and camera control.
 Smart Remote 2 USB dongle
         |
         v
-IOHIDManager device match/seize
+IOHIDManager device match/open
         |
         v
 HID event decoder
@@ -48,7 +48,7 @@ The Swift CLI lists USB devices, sniffs HID events, decodes live remote input, p
 - remote button capture models and matching;
 - HID manager helpers and event collection;
 - remote-button to camera-action mapping;
-- exclusive-HID live control session used by the menu app.
+- shared HID live control session used by the menu app.
 
 `ObsbotRemoteUSBBridge` is a small C target that wraps IOUSBLib calls needed for USB configuration descriptors and control requests. Swift owns the UVC parsing and command decisions.
 
@@ -66,7 +66,7 @@ The Swift CLI lists USB devices, sniffs HID events, decodes live remote input, p
 - `camera-xu-get` and `camera-xu-dump` inspect UVC extension-unit selectors;
 - `uvc-controls` reports the native UVC implementation status.
 
-`ObsbotRemoteMenu` owns the menu bar app. It runs as an accessory app, shows a menu bar popover, starts/stops the shared live control session, and displays logs. It requires exclusive HID access before starting so remote button presses do not reach other apps.
+`ObsbotRemoteMenu` owns the menu bar app. It runs as an accessory app, shows a menu bar popover, starts/stops the shared live control session, and displays logs. It opens the remote in normal HID listening mode.
 
 CLI implementation is split by concern:
 
@@ -104,7 +104,7 @@ These references informed the current UVC extension-unit work:
 
 The tool controls camera state but must not take ownership of the video stream. Zoom, Meet, OBS, and other apps should still use the camera while this tool adjusts supported controls.
 
-HID device seizure prevents remote keypresses from leaking into the focused app. The menu app requires seizure for live control. macOS may require user approval for Input Monitoring.
+Normal HID listening keeps startup simple but does not prevent remote keystrokes from reaching the focused app. HID device seizure or a focused event blocker can be revisited if key leakage is unacceptable.
 
 ## Test Strategy
 

@@ -39,7 +39,7 @@ scripts/build-menu-app.sh
 open ".build/OBSBOT Remote.app"
 ```
 
-Click the menu bar video icon to start or stop live remote control, open the log, or quit. The menu app opens the remote dongle with exclusive HID access so remote button presses do not reach other apps. If Start reports that HID access is not privileged, grant Input Monitoring to OBSBOT Remote in System Settings, then restart the app.
+Click the menu bar video icon to start or stop live remote control, open the log, or quit. The menu app opens the remote dongle in normal HID listening mode and does not block remote keystrokes from reaching other apps.
 
 Remote discovery and mapping:
 

@@ -23,7 +23,6 @@ private final class MenuAppDelegate: NSObject, NSApplicationDelegate {
     private let runner = RemoteControlRunner()
     private let popover = NSPopover()
     private var statusItem: NSStatusItem?
-    private var keyEventMonitor: Any?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -38,17 +37,10 @@ private final class MenuAppDelegate: NSObject, NSApplicationDelegate {
         popover.behavior = .transient
         popover.contentSize = NSSize(width: 360, height: 420)
         popover.contentViewController = NSHostingController(rootView: RemotePopoverView(runner: runner))
-
-        keyEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp, .flagsChanged]) { event in
-            event.modifierFlags.contains(.command) ? event : nil
-        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         runner.stop()
-        if let keyEventMonitor {
-            NSEvent.removeMonitor(keyEventMonitor)
-        }
     }
 
     @objc private func togglePopover(_ sender: AnyObject?) {
@@ -82,7 +74,7 @@ private final class RemoteControlRunner: ObservableObject {
 
         let configuration = RemoteControlSessionConfiguration(
             buttonCaptureURL: remoteButtonCaptureURL(),
-            requireSeize: true
+            requireSeize: false
         )
         let session = RemoteControlSession(configuration: configuration) { [weak self] message in
             Task { @MainActor [weak self] in
