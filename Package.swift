@@ -9,6 +9,7 @@ let package = Package(
     ],
     products: [
         .executable(name: "obsbot-remote", targets: ["ObsbotRemoteCLI"]),
+        .executable(name: "obsbot-remote-menu", targets: ["ObsbotRemoteMenu"]),
         .executable(name: "obsbot-remote-self-test", targets: ["ObsbotRemoteSelfTest"]),
         .library(name: "ObsbotRemoteCore", targets: ["ObsbotRemoteCore"]),
     ],
@@ -32,6 +33,13 @@ let package = Package(
             dependencies: ["ObsbotRemoteCore"],
             linkerSettings: [
                 .linkedFramework("IOKit")
+            ]
+        ),
+        .executableTarget(
+            name: "ObsbotRemoteMenu",
+            linkerSettings: [
+                .linkedFramework("AppKit"),
+                .linkedFramework("SwiftUI"),
             ]
         ),
         .executableTarget(

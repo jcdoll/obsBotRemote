@@ -2,7 +2,7 @@
 
 `obsBotRemote` is a native macOS Swift project for bridging OBSBOT Smart Remote 2 HID input to OBSBOT Tiny-series camera controls.
 
-The project is a Swift CLI lab bench that is growing into a small daemon built on Apple system frameworks.
+The project provides a Swift CLI lab bench and a macOS menu bar app built on Apple system frameworks.
 
 Current status:
 
@@ -16,7 +16,8 @@ Current status:
 
 - `Package.swift` -- Swift Package Manager manifest.
 - `Sources/ObsbotRemoteCore/` -- testable core types, USB discovery, camera state, UVC parsing, OBSBOT vendor protocol, and UVC control facade.
-- `Sources/ObsbotRemoteCLI/` -- CLI lab bench and future daemon entry point, split by command dispatch, options, HID input, terminal input, button mapping, and camera commands.
+- `Sources/ObsbotRemoteCLI/` -- CLI lab bench split by command dispatch, options, HID input, terminal input, button mapping, and camera commands.
+- `Sources/ObsbotRemoteMenu/` -- menu bar app that starts/stops the CLI control loop and displays logs.
 - `Sources/ObsbotRemoteSelfTest/` -- no-dependency self-test executable for bare Command Line Tools installs.
 - `docs/` -- architecture and operational notes.
 - `obsbot-remote-daemon-plan.md` -- initial research plan and hardware-discovery notes. Prefer current docs for status.
@@ -33,6 +34,7 @@ swift run obsbot-remote map-buttons
 swift run obsbot-remote map-buttons --reset
 swift run obsbot-remote control
 swift run obsbot-remote listen
+swift run obsbot-remote-menu
 swift run obsbot-remote hid-sniff --vendor-id 0x1106 --product-id 0xB106
 swift run obsbot-remote camera-probe
 swift run obsbot-remote camera-zoom
@@ -58,7 +60,7 @@ Use `swift build --configuration release` before packaging or Homebrew work.
 - Keep `Sources/ObsbotRemoteCLI/main.swift` as process startup only. Add command behavior to focused files or `CommandLineTool` extensions.
 - Keep `UVCController` as the high-level camera facade. Put descriptor parsing and OBSBOT packet construction in their dedicated core files.
 - Unknown remote buttons should do nothing until keycodes are confirmed with the real dongle.
-- Keep the CLI useful as a lab bench. Every hardware-discovery command should be directly reusable while building the daemon.
+- Keep the CLI useful as a lab bench. Every hardware-discovery command should be directly reusable while building the menu app.
 
 ## Safety
 
@@ -69,8 +71,9 @@ Use `swift build --configuration release` before packaging or Homebrew work.
 ## Documentation
 
 - Keep `README.md` focused on setup, validation, and user-facing commands.
-- Keep `docs/architecture.md` focused on the project boundary, runtime components, and future extraction points.
+- Keep `docs/architecture.md` focused on the project boundary, runtime components, and planned extraction points.
 - Keep `docs/hardware-notes.md` current with observed USB ids, UVC descriptors, and external references used to derive vendor controls.
 - Keep the markdown plan as the source for unresolved research questions, but update it when a direction changes.
+- Describe the current project directly. Do not use historical framing, "growing into" language, or "proof of concept" labels unless quoting an external source.
 - No emojis in code or docs.
 - Commands on single lines unless line wrapping is needed for readability.

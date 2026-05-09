@@ -1,10 +1,10 @@
 # Architecture
 
-`obsBotRemote` is a native macOS remote-control daemon in progress. It listens for OBSBOT Smart Remote 2 HID input and translates known button presses into camera controls for an OBSBOT Tiny 2.
+`obsBotRemote` is a native macOS CLI and menu bar controller. It listens for OBSBOT Smart Remote 2 HID input and translates known button presses into camera controls for an OBSBOT Tiny 2.
 
 ## Project Shape
 
-The project is a Swift CLI lab bench that is growing into a small macOS daemon. It uses Apple system frameworks for remote input and camera control.
+The project uses Apple system frameworks for remote input and camera control.
 
 ## Runtime Shape
 
@@ -30,7 +30,7 @@ IOKit UVC control transfer
 OBSBOT Tiny 2
 ```
 
-The current Swift CLI is the lab bench. It lists USB devices, sniffs HID events, decodes live remote input, probes UVC descriptors, and can issue native UVC `GET_CUR`/`SET_CUR` requests for `pan-tilt-abs`, `zoom-abs`, and OBSBOT vendor extension-unit controls.
+The Swift CLI lists USB devices, sniffs HID events, decodes live remote input, probes UVC descriptors, and can issue native UVC `GET_CUR`/`SET_CUR` requests for `pan-tilt-abs`, `zoom-abs`, and OBSBOT vendor extension-unit controls.
 
 ## Components
 
@@ -59,6 +59,8 @@ The current Swift CLI is the lab bench. It lists USB devices, sniffs HID events,
 - `camera-xu-get` and `camera-xu-dump` inspect UVC extension-unit selectors;
 - `uvc-controls` reports the native UVC implementation status.
 
+`ObsbotRemoteMenu` owns the menu bar app. It runs as an accessory app, shows a menu bar popover, starts/stops `obsbot-remote control`, and displays process logs. It spawns the CLI so the live control path stays in one place.
+
 CLI implementation is split by concern:
 
 - `main.swift` owns process startup and error handling;
@@ -78,6 +80,7 @@ swift run obsbot-remote devices
 swift run obsbot-remote map-buttons
 swift run obsbot-remote control
 swift run obsbot-remote listen
+swift run obsbot-remote-menu
 swift run obsbot-remote camera-probe
 swift run obsbot-remote camera-power status
 ```
@@ -93,9 +96,9 @@ These references informed the current UVC extension-unit work:
 
 ## Safety Model
 
-The daemon controls camera state but must not take ownership of the video stream. Zoom, Meet, OBS, and other apps should still use the camera while this daemon adjusts supported controls.
+The tool controls camera state but must not take ownership of the video stream. Zoom, Meet, OBS, and other apps should still use the camera while this tool adjusts supported controls.
 
-HID device seizure is expected for the final daemon because it prevents remote keypresses from leaking into the focused app. macOS may require user approval for input monitoring or related privacy permissions.
+HID device seizure prevents remote keypresses from leaking into the focused app. macOS may require user approval for input monitoring or related privacy permissions.
 
 ## Test Strategy
 
@@ -110,5 +113,6 @@ Keep the package small until hardware behavior is known:
 - `HIDRemoteReader` for IOHIDManager matching, seizure, and callbacks;
 - `Keymap` for mapping confirmed HID usage values to camera actions;
 - shared command loop that connects decoded buttons to `UVCController`;
-- LaunchAgent installation docs or templates;
-- Homebrew formula once the release binary is useful.
+- shared control loop that both the CLI and menu app can call directly;
+- compact menu bar popover camera controls for non-remote users;
+- Homebrew formula for the CLI/menu runner and a Homebrew cask once there is a signed `.app` bundle.

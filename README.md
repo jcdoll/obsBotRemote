@@ -1,6 +1,6 @@
 # obsBotRemote
 
-Native macOS lab bench and daemon-in-progress for using the OBSBOT Smart Remote 2 with an OBSBOT Tiny-series camera without running OBSBOT Center.
+Native macOS CLI and menu bar controller for using the OBSBOT Smart Remote 2 with an OBSBOT Tiny-series camera without running OBSBOT Center.
 
 The project is Swift-first. It uses Apple system frameworks directly: IOHIDManager for the remote dongle and IOKit/IOUSBLib for camera controls.
 
@@ -9,7 +9,8 @@ Current status:
 - remote button capture, dry-run decoding, and foreground live control are working;
 - standard UVC zoom and pan/tilt lab commands are working;
 - OBSBOT vendor extension-unit probing is working;
-- OBSBOT sleep/wake is working through `control`; AI tracking mode buttons are mapped for testing.
+- OBSBOT sleep/wake is working through `control`; AI tracking mode buttons are mapped for testing;
+- the menu bar app can start/stop the live control process and show logs.
 
 ## Setup
 
@@ -29,6 +30,15 @@ swift build
 swift run obsbot-remote-self-test
 swift build --configuration release
 ```
+
+Menu bar app:
+
+```bash
+swift build
+swift run obsbot-remote-menu
+```
+
+Click the menu bar video icon to start or stop live remote control, open the log, or quit.
 
 Remote discovery and mapping:
 
@@ -85,3 +95,7 @@ swift build --configuration release
 ```
 
 For implementation details, see [docs/architecture.md](docs/architecture.md).
+
+## Distribution Notes
+
+The Swift package exposes separate executables for the CLI, menu bar app, and self-test. The intended Homebrew path is a formula that installs the CLI and menu runner first; a signed `.app` bundle and Homebrew cask can follow once the menu UI is stable.
