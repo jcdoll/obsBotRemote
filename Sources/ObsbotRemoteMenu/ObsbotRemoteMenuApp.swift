@@ -72,20 +72,8 @@ private final class RemoteControlRunner: ObservableObject {
             return
         }
 
-        switch checkHIDListenAccess() {
-        case .granted:
-            break
-        case .denied:
-            status = "Input access denied"
-            appendSystemLog("input monitoring is disabled for OBSBOT Remote")
+        guard ensureHIDListenAccess() else {
             return
-        case .unknown:
-            appendSystemLog("requesting input monitoring access")
-            guard requestHIDListenAccess() else {
-                status = "Input access needed"
-                appendSystemLog("grant Input Monitoring to OBSBOT Remote, then restart the app")
-                return
-            }
         }
 
         let configuration = RemoteControlSessionConfiguration(
@@ -169,6 +157,26 @@ private final class RemoteControlRunner: ObservableObject {
             let dropCount = logText.count - maxCharacters
             logText.removeFirst(dropCount)
         }
+    }
+
+    private func ensureHIDListenAccess() -> Bool {
+        switch checkHIDListenAccess() {
+        case .granted:
+            return true
+        case .denied:
+            appendSystemLog("input monitoring is denied for OBSBOT Remote")
+        case .unknown:
+            appendSystemLog("requesting input monitoring access")
+        }
+
+        if requestHIDListenAccess() || checkHIDListenAccess() == .granted {
+            return true
+        }
+
+        status = "Input access needed"
+        appendSystemLog("grant Input Monitoring to OBSBOT Remote, then quit and reopen the app")
+        appendSystemLog("app path: \(Bundle.main.bundleURL.path)")
+        return false
     }
 
     private static let timestampFormatter: DateFormatter = {
