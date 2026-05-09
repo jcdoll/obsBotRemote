@@ -75,7 +75,7 @@ private final class MenuAppDelegate: NSObject, NSApplicationDelegate, NSMenuDele
 
         menu.addItem(.separator())
 
-        let quitItem = NSMenuItem(title: "Quit OBSBOT Remote", action: #selector(quit(_:)), keyEquivalent: "q")
+        let quitItem = NSMenuItem(title: "Quit OBSBOT Remote", action: #selector(quit(_:)), keyEquivalent: "")
         quitItem.target = self
         menu.addItem(quitItem)
 
