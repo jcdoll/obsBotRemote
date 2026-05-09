@@ -20,6 +20,8 @@ struct CommandLineTool {
             printDoctor()
         case "hid-sniff":
             try runHIDSniff(arguments: rest)
+        case "control":
+            try runControl(arguments: rest)
         case "listen":
             try runListen(arguments: rest)
         case "map-buttons":
@@ -52,7 +54,8 @@ struct CommandLineTool {
               doctor                         Check local runtime assumptions.
               devices                        List USB devices visible through IOKit.
               hid-sniff [options]            Print HID input values from the remote dongle.
-              listen [options]               Decode live remote input and print dry-run actions.
+              control                        Run live remote-to-camera control.
+              listen                         Decode live remote input and print dry-run actions.
               map-buttons [options]          Prompt through known remote buttons and write JSON.
               camera-probe [options]         Probe native UVC camera controls.
               camera-zoom [options]          Read or set native UVC zoom-abs.
@@ -73,11 +76,6 @@ struct CommandLineTool {
               --seize                        Try exclusive remote capture.
               --no-seize                     Do not try exclusive remote capture.
               --seconds <seconds>            Capture window per button, default 2.0.
-
-            listen options:
-              --input <path>                 Button capture JSON path.
-              --seize / --no-seize           Try exclusive remote capture, default no-seize.
-              --window <seconds>             Grouping window after first input, default 0.35.
 
             camera options:
               --vendor-id <id>               Camera USB vendor id, default 0x3564.

@@ -6,11 +6,11 @@ The project is a Swift CLI lab bench that is growing into a small daemon built o
 
 Current status:
 
-- remote HID capture, guided button mapping, JSON resume/reset, and live dry-run decoding are implemented;
+- remote HID capture, guided button mapping, JSON resume/reset, live dry-run decoding, and foreground live control are implemented;
 - standard UVC `zoom-abs` and `pan-tilt-abs` lab commands are implemented through IOUSBLib control transfers;
 - UVC extension-unit parsing and `camera-xu-get`/`camera-xu-dump` are implemented;
-- OBSBOT run/sleep state is implemented through `camera-power`;
-- `listen` is still dry-run and should not silently start changing hardware state without an explicit design change.
+- OBSBOT run/sleep state is implemented through `control` and `camera-power`;
+- `listen` is dry-run; `control` is live camera control.
 
 ## Repository Layout
 
@@ -31,6 +31,7 @@ swift run obsbot-remote doctor
 swift run obsbot-remote devices
 swift run obsbot-remote map-buttons
 swift run obsbot-remote map-buttons --reset
+swift run obsbot-remote control
 swift run obsbot-remote listen
 swift run obsbot-remote hid-sniff --vendor-id 0x1106 --product-id 0xB106
 swift run obsbot-remote camera-probe

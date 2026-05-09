@@ -1,5 +1,12 @@
 import Foundation
 
+let defaultRemoteVendorID: UInt32 = 0x1106
+let defaultRemoteProductID: UInt32 = 0xB106
+let defaultRemoteButtonCaptureURL = URL(fileURLWithPath: "docs/remote-button-capture.json")
+let defaultRemoteInputWindow: TimeInterval = 0.35
+let defaultRemotePanTiltStep: Int32 = 18_000
+let defaultRemoteZoomStep = 10
+
 struct ButtonMapCapture: Codable {
     var capturedAt: String
     var vendorID: String?
@@ -106,9 +113,6 @@ func hidSignatureDescription(_ events: [HIDEventRecord]) -> String {
 }
 
 func dryRunActionDescription(for button: String) -> String {
-    let moveStep = 1_800
-    let zoomStep = 10
-
     switch button {
     case "Preset P1":
         return "recallPreset(P1)"
@@ -117,19 +121,19 @@ func dryRunActionDescription(for button: String) -> String {
     case "Preset P3":
         return "recallPreset(P3)"
     case "Gimbal Up":
-        return "move(panDelta: 0, tiltDelta: \(moveStep))"
+        return "move(panDelta: 0, tiltDelta: \(defaultRemotePanTiltStep))"
     case "Gimbal Down":
-        return "move(panDelta: 0, tiltDelta: -\(moveStep))"
+        return "move(panDelta: 0, tiltDelta: -\(defaultRemotePanTiltStep))"
     case "Gimbal Left":
-        return "move(panDelta: -\(moveStep), tiltDelta: 0)"
+        return "move(panDelta: -\(defaultRemotePanTiltStep), tiltDelta: 0)"
     case "Gimbal Right":
-        return "move(panDelta: \(moveStep), tiltDelta: 0)"
+        return "move(panDelta: \(defaultRemotePanTiltStep), tiltDelta: 0)"
     case "Gimbal Reset":
         return "center"
     case "Zoom In":
-        return "zoom(delta: \(zoomStep))"
+        return "zoom(delta: \(defaultRemoteZoomStep))"
     case "Zoom Out":
-        return "zoom(delta: -\(zoomStep))"
+        return "zoom(delta: -\(defaultRemoteZoomStep))"
     case "On/Off":
         return "powerToggle"
     case "Choose Device 1", "Choose Device 2", "Choose Device 3", "Choose Device 4",

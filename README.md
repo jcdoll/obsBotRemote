@@ -6,11 +6,10 @@ The project is Swift-first. It uses Apple system frameworks directly: IOHIDManag
 
 Current status:
 
-- remote button capture and live dry-run decoding are working;
+- remote button capture, dry-run decoding, and foreground live control are working;
 - standard UVC zoom and pan/tilt lab commands are working;
 - OBSBOT vendor extension-unit probing is working;
-- OBSBOT sleep/wake is working through `camera-power`;
-- the live `listen` loop still prints dry-run actions instead of changing camera state.
+- OBSBOT sleep/wake is working through `control` and `camera-power`.
 
 ## Setup
 
@@ -38,6 +37,7 @@ swift run obsbot-remote doctor
 swift run obsbot-remote devices
 swift run obsbot-remote map-buttons
 swift run obsbot-remote map-buttons --reset
+swift run obsbot-remote control
 swift run obsbot-remote listen
 swift run obsbot-remote hid-sniff --vendor-id 0x1106 --product-id 0xB106
 swift run obsbot-remote hid-sniff --vendor-id 0x1106 --product-id 0xB106 --seize
@@ -59,7 +59,7 @@ swift run obsbot-remote camera-xu-get --unit 2 --selector 6 --length 60
 swift run obsbot-remote uvc-controls
 ```
 
-Use `devices` first to identify the remote dongle and camera vendor/product ids. Use `map-buttons` for guided button capture, then `listen` to decode live remote input into dry-run actions. Use `hid-sniff` only when you want a raw event stream.
+Use `devices` first to identify the remote dongle and camera vendor/product ids. Use `map-buttons` for guided button capture, `listen` to decode remote input without moving the camera, and `control` when you want the remote to control the camera. Use `hid-sniff` only when you want a raw event stream.
 
 `camera-probe`, `camera-zoom`, `camera-pan-tilt`, and `camera-power` use native UVC control transfers through Apple system frameworks.
 

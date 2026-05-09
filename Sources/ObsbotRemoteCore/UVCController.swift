@@ -30,6 +30,25 @@ public enum UVCRequestError: Error, CustomStringConvertible, Equatable, Sendable
     }
 }
 
+public struct UVCZoomRange: Equatable, Sendable {
+    public var minimum: Int
+    public var maximum: Int
+    public var resolution: Int
+    public var defaultValue: Int
+}
+
+public struct UVCPanTiltValue: Equatable, Sendable {
+    public var pan: Int32
+    public var tilt: Int32
+}
+
+public struct UVCPanTiltRange: Equatable, Sendable {
+    public var minimum: UVCPanTiltValue
+    public var maximum: UVCPanTiltValue
+    public var resolution: UVCPanTiltValue
+    public var defaultValue: UVCPanTiltValue
+}
+
 public final class UVCController {
     public var vendorID: UInt16
     public var productID: UInt16
@@ -44,18 +63,16 @@ public final class UVCController {
     }
 
     public func readZoom() throws -> Int {
-        let terminal = try cameraTerminal(requiring: .zoomAbsolute)
-        var payload = [UInt8](repeating: 0, count: 2)
-        try deviceRequest(
-            operation: "GET_CUR zoom-abs",
-            requestType: 0xA1,
-            request: 0x81,
-            value: UInt16(UVCCameraTerminalControl.zoomAbsolute.rawValue) << 8,
-            index: controlIndex(for: terminal),
-            payload: &payload,
-            expectedLength: payload.count
+        try readZoom(request: UVCGetRequest.current, operation: "GET_CUR zoom-abs")
+    }
+
+    public func readZoomRange() throws -> UVCZoomRange {
+        UVCZoomRange(
+            minimum: try readZoom(request: UVCGetRequest.minimum, operation: "GET_MIN zoom-abs"),
+            maximum: try readZoom(request: UVCGetRequest.maximum, operation: "GET_MAX zoom-abs"),
+            resolution: try readZoom(request: UVCGetRequest.resolution, operation: "GET_RES zoom-abs"),
+            defaultValue: try readZoom(request: UVCGetRequest.defaultValue, operation: "GET_DEF zoom-abs")
         )
-        return Int(UInt16(payload[0]) | (UInt16(payload[1]) << 8))
     }
 
     public func setZoom(_ value: Int) throws {
@@ -77,18 +94,47 @@ public final class UVCController {
     }
 
     public func readPanTilt() throws -> (pan: Int32, tilt: Int32) {
+        let value = try readPanTilt(request: UVCGetRequest.current, operation: "GET_CUR pan-tilt-abs")
+        return (pan: value.pan, tilt: value.tilt)
+    }
+
+    public func readPanTiltRange() throws -> UVCPanTiltRange {
+        UVCPanTiltRange(
+            minimum: try readPanTilt(request: UVCGetRequest.minimum, operation: "GET_MIN pan-tilt-abs"),
+            maximum: try readPanTilt(request: UVCGetRequest.maximum, operation: "GET_MAX pan-tilt-abs"),
+            resolution: try readPanTilt(request: UVCGetRequest.resolution, operation: "GET_RES pan-tilt-abs"),
+            defaultValue: try readPanTilt(request: UVCGetRequest.defaultValue, operation: "GET_DEF pan-tilt-abs")
+        )
+    }
+
+    private func readZoom(request: UInt8, operation: String) throws -> Int {
+        let terminal = try cameraTerminal(requiring: .zoomAbsolute)
+        var payload = [UInt8](repeating: 0, count: 2)
+        try deviceRequest(
+            operation: operation,
+            requestType: 0xA1,
+            request: request,
+            value: UInt16(UVCCameraTerminalControl.zoomAbsolute.rawValue) << 8,
+            index: controlIndex(for: terminal),
+            payload: &payload,
+            expectedLength: payload.count
+        )
+        return Int(UInt16(payload[0]) | (UInt16(payload[1]) << 8))
+    }
+
+    private func readPanTilt(request: UInt8, operation: String) throws -> UVCPanTiltValue {
         let terminal = try cameraTerminal(requiring: .panTiltAbsolute)
         var payload = [UInt8](repeating: 0, count: 8)
         try deviceRequest(
-            operation: "GET_CUR pan-tilt-abs",
+            operation: operation,
             requestType: 0xA1,
-            request: 0x81,
+            request: request,
             value: UInt16(UVCCameraTerminalControl.panTiltAbsolute.rawValue) << 8,
             index: controlIndex(for: terminal),
             payload: &payload,
             expectedLength: payload.count
         )
-        return (
+        return UVCPanTiltValue(
             pan: Int32(littleEndianBytes: payload[0..<4]),
             tilt: Int32(littleEndianBytes: payload[4..<8])
         )
@@ -292,6 +338,14 @@ public final class UVCController {
             )
         }
     }
+}
+
+private enum UVCGetRequest {
+    static let current: UInt8 = 0x81
+    static let minimum: UInt8 = 0x82
+    static let maximum: UInt8 = 0x83
+    static let resolution: UInt8 = 0x84
+    static let defaultValue: UInt8 = 0x87
 }
 
 private extension Array where Element == UInt8 {

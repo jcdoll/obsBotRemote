@@ -62,6 +62,12 @@ swift run obsbot-remote listen
 
 The decoder matches live input against `docs/remote-button-capture.json` and prints the dry-run action, for example `Zoom In -> zoom(delta: 10)`.
 
+Use foreground live control when you want the remote to move the camera:
+
+```bash
+swift run obsbot-remote control
+```
+
 | Button | HID events | Notes |
 |---|---|---|
 | On/Off |  |  |
@@ -104,4 +110,5 @@ That means some camera buttons may be encoded as modifier-plus-key shortcuts rat
 swift run obsbot-remote camera-power
 ```
 
-`listen` still prints dry-run actions. Use `camera-power status`, `camera-power on`, and `camera-power off` to validate the OBSBOT vendor sleep/wake control before wiring the live remote loop to execute actions.
+`listen` prints dry-run actions. `control` executes supported camera actions and prints what it did.
+Holding a gimbal direction button is handled through the remote's repeated terminal arrow sequence in non-seize mode.

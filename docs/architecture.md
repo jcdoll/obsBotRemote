@@ -50,6 +50,7 @@ The current Swift CLI is the lab bench. It lists USB devices, sniffs HID events,
 - `doctor` checks local assumptions;
 - `devices` lists USB devices visible through IOKit;
 - `hid-sniff` records remote HID events;
+- `control` runs foreground live remote-to-camera control;
 - `listen` decodes live remote input into dry-run camera actions;
 - `camera-probe` finds UVC VideoControl interfaces and camera-terminal controls;
 - `camera-zoom` reads or writes `zoom-abs`;
@@ -75,6 +76,7 @@ The lab bench should be easy to run after cloning:
 swift run obsbot-remote doctor
 swift run obsbot-remote devices
 swift run obsbot-remote map-buttons
+swift run obsbot-remote control
 swift run obsbot-remote listen
 swift run obsbot-remote camera-probe
 swift run obsbot-remote camera-power status

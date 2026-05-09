@@ -49,9 +49,11 @@ extension CommandLineTool {
         if let zoom = try? controller.readZoom() {
             print("zoomCurrent=\(zoom)")
         }
+        printZoomRange(controller)
         if let panTilt = try? controller.readPanTilt() {
             print("panTiltCurrent pan=\(panTilt.pan) tilt=\(panTilt.tilt)")
         }
+        printPanTiltRange(controller)
     }
 
     func runCameraZoom(arguments: [String]) throws {
@@ -180,6 +182,32 @@ extension CommandLineTool {
               - camera-power [status|on|off]
             """
         )
+    }
+
+    private func printZoomRange(_ controller: UVCController) {
+        do {
+            let range = try controller.readZoomRange()
+            print(
+                "zoomRange min=\(range.minimum) max=\(range.maximum) res=\(range.resolution) default=\(range.defaultValue)"
+            )
+        } catch let error as UVCRequestError {
+            print("zoomRangeError=\(error.description)")
+        } catch {
+            print("zoomRangeError=\(error)")
+        }
+    }
+
+    private func printPanTiltRange(_ controller: UVCController) {
+        do {
+            let range = try controller.readPanTiltRange()
+            print(
+                "panTiltRange min=(pan=\(range.minimum.pan), tilt=\(range.minimum.tilt)) max=(pan=\(range.maximum.pan), tilt=\(range.maximum.tilt)) res=(pan=\(range.resolution.pan), tilt=\(range.resolution.tilt)) default=(pan=\(range.defaultValue.pan), tilt=\(range.defaultValue.tilt))"
+            )
+        } catch let error as UVCRequestError {
+            print("panTiltRangeError=\(error.description)")
+        } catch {
+            print("panTiltRangeError=\(error)")
+        }
     }
 }
 

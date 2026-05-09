@@ -35,10 +35,10 @@ struct HIDSniffOptions {
 }
 
 struct ButtonMapOptions {
-    var vendorID: UInt32? = 0x1106
-    var productID: UInt32? = 0xB106
+    var vendorID: UInt32? = defaultRemoteVendorID
+    var productID: UInt32? = defaultRemoteProductID
     var seize: Bool = false
-    var output: URL = URL(fileURLWithPath: "docs/remote-button-capture.json")
+    var output: URL = defaultRemoteButtonCaptureURL
     var captureSeconds: TimeInterval = 2.0
     var reset: Bool = false
 
@@ -90,54 +90,11 @@ struct ButtonMapOptions {
 }
 
 struct ListenOptions {
-    var vendorID: UInt32? = 0x1106
-    var productID: UInt32? = 0xB106
-    var seize: Bool = false
-    var input: URL = URL(fileURLWithPath: "docs/remote-button-capture.json")
-    var window: TimeInterval = 0.35
-
     static func parse(_ arguments: [String]) throws -> ListenOptions {
-        var options = ListenOptions()
-        var index = 0
-        while index < arguments.count {
-            switch arguments[index] {
-            case "--vendor-id":
-                index += 1
-                guard index < arguments.count else {
-                    throw CLIError("--vendor-id requires a value")
-                }
-                options.vendorID = try parseInteger(arguments[index])
-            case "--product-id":
-                index += 1
-                guard index < arguments.count else {
-                    throw CLIError("--product-id requires a value")
-                }
-                options.productID = try parseInteger(arguments[index])
-            case "--seize":
-                options.seize = true
-            case "--no-seize":
-                options.seize = false
-            case "--input":
-                index += 1
-                guard index < arguments.count else {
-                    throw CLIError("--input requires a value")
-                }
-                options.input = URL(fileURLWithPath: arguments[index])
-            case "--window":
-                index += 1
-                guard index < arguments.count else {
-                    throw CLIError("--window requires a value")
-                }
-                guard let window = TimeInterval(arguments[index]), window > 0 else {
-                    throw CLIError("--window must be a positive number")
-                }
-                options.window = window
-            default:
-                throw CLIError("unknown listen option: \(arguments[index])")
-            }
-            index += 1
+        guard arguments.isEmpty else {
+            throw CLIError("listen does not accept options")
         }
-        return options
+        return ListenOptions()
     }
 }
 
