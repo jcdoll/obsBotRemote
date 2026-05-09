@@ -35,7 +35,7 @@ private final class MenuAppDelegate: NSObject, NSApplicationDelegate {
         }
 
         popover.behavior = .transient
-        popover.contentSize = NSSize(width: 360, height: 420)
+        popover.contentSize = NSSize(width: 300, height: 128)
         popover.contentViewController = NSHostingController(rootView: RemotePopoverView(runner: runner))
 
         runner.start()
@@ -202,30 +202,18 @@ private struct RemotePopoverView: View {
                     Label("Log", systemImage: "doc.text.magnifyingglass")
                         .frame(maxWidth: .infinity)
                 }
-            }
 
-            Divider()
-
-            ScrollView {
-                Text(runner.logText.isEmpty ? "No log yet." : runner.logText)
-                    .font(.system(.caption, design: .monospaced))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .textSelection(.enabled)
-            }
-            .frame(minHeight: 250)
-
-            Divider()
-
-            HStack {
-                Spacer()
-                Button("Quit") {
+                Button {
                     runner.quit()
+                } label: {
+                    Label("Quit", systemImage: "power")
+                        .frame(maxWidth: .infinity)
                 }
                 .keyboardShortcut("q")
             }
         }
         .padding(14)
-        .frame(width: 360, height: 420)
+        .frame(width: 300, height: 128)
     }
 }
 
