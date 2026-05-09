@@ -22,6 +22,7 @@ Current status:
 - `Sources/ObsbotRemoteMenu/` -- menu bar app that registers remote shortcuts, starts/stops live remote control, and displays logs.
 - `Sources/ObsbotRemoteSelfTest/` -- no-dependency self-test executable for bare Command Line Tools installs.
 - `docs/` -- architecture and operational notes.
+- `docs/release.md` -- Developer ID, notarization, GitHub release, and Homebrew cask process.
 - `scripts/build-menu-app.sh` -- local `.app` bundle builder for menu bar testing.
 - `obsbot-remote-daemon-plan.md` -- initial research plan and hardware-discovery notes. Prefer current docs for status.
 - `.github/workflows/ci.yml` -- macOS Swift build and test.
@@ -78,6 +79,7 @@ Use `swift build --configuration release` before packaging or Homebrew work.
 - Keep `README.md` focused on setup, validation, and user-facing commands.
 - Keep `docs/architecture.md` focused on the project boundary, runtime components, and planned extraction points.
 - Keep `docs/hardware-notes.md` current with observed USB ids, UVC descriptors, and external references used to derive vendor controls.
+- Keep `docs/release.md` current with the signed/notarized app and Homebrew cask process.
 - Keep the markdown plan as the source for unresolved research questions, but update it when a direction changes.
 - Describe the current project directly. Do not use historical framing, "growing into" language, or "proof of concept" labels unless quoting an external source.
 - No emojis in code or docs.

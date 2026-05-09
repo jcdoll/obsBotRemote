@@ -77,6 +77,7 @@ Use `devices` first to identify the remote dongle and camera vendor/product ids.
 
 Observed local hardware ids are tracked in [docs/hardware-notes.md](docs/hardware-notes.md).
 Remote button mapping is described in [docs/remote-button-map.md](docs/remote-button-map.md).
+Release packaging is described in [docs/release.md](docs/release.md).
 
 ## References
 
@@ -99,4 +100,4 @@ For implementation details, see [docs/architecture.md](docs/architecture.md).
 
 ## Distribution Notes
 
-The Swift package exposes separate executables for the CLI, menu bar app, and self-test. `scripts/build-menu-app.sh` wraps the menu executable as a local `.app` bundle. The intended Homebrew path is a formula for the CLI and a cask for the signed menu app bundle.
+The Swift package exposes separate executables for the CLI, menu bar app, and self-test. `scripts/build-menu-app.sh` wraps the menu executable as a local `.app` bundle. The intended Homebrew path is a cask for the signed menu app bundle. See [docs/release.md](docs/release.md).
