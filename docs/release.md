@@ -200,15 +200,45 @@ shasum -a 256 "$FINAL_ZIP"
 
 ## GitHub Release
 
-Create a tag and upload the final archive:
+Create a tag and upload the final archive. Run this from the repository root after creating the final zip:
 
 ```bash
+VERSION="0.1.0"
+FINAL_ZIP=".build/release-artifacts/OBSBOT-Remote-$VERSION.zip"
+SHA256="$(shasum -a 256 "$FINAL_ZIP" | awk '{print $1}')"
+NOTES_FILE="$(mktemp)"
+
+test -f "$FINAL_ZIP"
+git fetch --tags
+
+if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+  echo "Tag v$VERSION already exists. Stop and inspect before continuing."
+  exit 1
+fi
+
+if gh release view "v$VERSION" >/dev/null 2>&1; then
+  echo "Release v$VERSION already exists. Stop and inspect before continuing."
+  exit 1
+fi
+
+cat > "$NOTES_FILE" <<NOTES
+OBSBOT Remote $VERSION
+
+SHA256:
+
+\`\`\`text
+$SHA256
+\`\`\`
+NOTES
+
 git tag "v$VERSION"
 git push origin "v$VERSION"
 
 gh release create "v$VERSION" "$FINAL_ZIP" \
   --title "OBSBOT Remote $VERSION" \
-  --notes "Release $VERSION"
+  --notes-file "$NOTES_FILE"
+
+rm -f "$NOTES_FILE"
 ```
 
 If the tag already exists locally or remotely, stop and inspect before overwriting anything.
