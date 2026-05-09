@@ -109,7 +109,7 @@ Before marking a release ready:
 - The release asset URL is downloadable without private repository credentials.
 - The final `sha256` in the Homebrew cask matches the stapled final archive.
 - Homebrew audit, install, and uninstall pass.
-- Do not use `brew audit --cask --new` for this personal tap. That flag applies upstream Homebrew notability checks.
+- Do not use `brew audit --cask --new` for this project tap. That flag applies upstream Homebrew notability checks.
 
 ## Homebrew Cask Shape
 
@@ -137,5 +137,5 @@ end
 - If the Developer ID certificate is present but not trusted, install Apple's Developer ID G2 intermediate certificate as documented in `docs/release.md`.
 - If `notarytool submit` fails, fetch the notary log before retrying and surface the status to the user.
 - If Homebrew download returns 404, verify the product repository and GitHub release asset are public.
-- If `brew audit --cask --new` fails on project notability, rerun the personal tap check as `brew audit --cask obsbot-remote`.
+- If `brew audit --cask --new` fails on project notability, rerun the project tap check as `brew audit --cask obsbot-remote`.
 - If `brew audit` fails due to local Homebrew dependency state, repair Homebrew first; do not work around cask validation.

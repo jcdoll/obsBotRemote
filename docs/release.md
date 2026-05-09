@@ -279,7 +279,7 @@ brew install --cask obsbot-remote
 brew uninstall --cask obsbot-remote
 ```
 
-Do not use `brew audit --cask --new` for the personal tap release check. That flag applies upstream Homebrew notability checks and will fail for a small project even when the cask works.
+Do not use `brew audit --cask --new` for the project tap release check. That flag applies upstream Homebrew notability checks and will fail for a small project even when the cask works from `jcdoll/tap`.
 
 Push the tap:
 
@@ -297,6 +297,8 @@ Users install with:
 brew tap jcdoll/tap
 brew install --cask obsbot-remote
 ```
+
+This command works on other Macs as long as the tap repository and release asset are public.
 
 ## Release Checklist
 
