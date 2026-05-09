@@ -17,9 +17,9 @@ Current status:
 - `Package.swift` -- Swift Package Manager manifest.
 - `Resources/remote-button-capture.json` -- runtime default keymap for the OBSBOT Smart Remote 2.
 - `Sources/ObsbotRemoteCore/` -- testable core types, USB discovery, camera state, UVC parsing, OBSBOT vendor protocol, and UVC control facade.
-- `Sources/ObsbotRemoteControl/` -- shared remote button models, HID capture helpers, and live camera-control runtime.
+- `Sources/ObsbotRemoteControl/` -- shared remote button models, HID capture helpers, camera actions, and CLI live-control runtime.
 - `Sources/ObsbotRemoteCLI/` -- CLI lab bench split by command dispatch, options, HID input, terminal input, button mapping, and camera commands.
-- `Sources/ObsbotRemoteMenu/` -- menu bar app that starts/stops live remote control and displays logs.
+- `Sources/ObsbotRemoteMenu/` -- menu bar app that registers remote shortcuts, starts/stops live remote control, and displays logs.
 - `Sources/ObsbotRemoteSelfTest/` -- no-dependency self-test executable for bare Command Line Tools installs.
 - `docs/` -- architecture and operational notes.
 - `scripts/build-menu-app.sh` -- local `.app` bundle builder for menu bar testing.
@@ -57,20 +57,21 @@ Use `swift build --configuration release` before packaging or Homebrew work.
 ## Design Notes
 
 - Keep hardware access behind small adapters so tests stay hardware-free.
-- Use IOHIDManager for remote dongle input and device seizure.
+- Use IOHIDManager for CLI remote capture and device seizure.
+- Use macOS global hotkeys for menu-app remote shortcut capture.
 - Use IOKit/IOUSBLib for UVC camera-control transfers.
 - OBSBOT vendor controls are UVC extension-unit packets. Keep the known selector/status details in docs when new controls are discovered.
 - Keep `Sources/ObsbotRemoteCLI/main.swift` as process startup only. Add command behavior to focused files or `CommandLineTool` extensions.
 - Keep `UVCController` as the high-level camera facade. Put descriptor parsing and OBSBOT packet construction in their dedicated core files.
 - Unknown remote buttons should do nothing until keycodes are confirmed with the real dongle.
 - Keep the CLI useful as a lab bench. Hardware-discovery commands should stay directly reusable.
-- Keep the menu app on the shared control runtime. It should not spawn the CLI for live control.
+- Keep the menu app in-process. It should not spawn the CLI for live control.
 
 ## Safety
 
 - The tool must not take ownership of the camera video stream. Zoom, Meet, OBS, and similar apps should keep streaming while controls are sent.
 - Commands that write camera state should be explicit and easy to trace.
-- macOS privacy prompts are expected for HID access; do not try to bypass them.
+- macOS privacy prompts are expected for CLI HID access; do not try to bypass them.
 
 ## Documentation
 

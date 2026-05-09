@@ -62,7 +62,7 @@ private final class RemoteControlRunner: ObservableObject {
     @Published private(set) var isRunning = false
     @Published private(set) var logText = ""
 
-    private var session: RemoteControlSession?
+    private var session: RemoteHotKeyControlSession?
     private var logWindow: NSWindow?
     private var logWindowDelegate: LogWindowDelegate?
 
@@ -72,15 +72,7 @@ private final class RemoteControlRunner: ObservableObject {
             return
         }
 
-        guard ensureHIDListenAccess() else {
-            return
-        }
-
-        let configuration = RemoteControlSessionConfiguration(
-            buttonCaptureURL: remoteButtonCaptureURL(),
-            requireSeize: false
-        )
-        let session = RemoteControlSession(configuration: configuration) { [weak self] message in
+        let session = RemoteHotKeyControlSession(buttonCaptureURL: remoteButtonCaptureURL()) { [weak self] message in
             Task { @MainActor [weak self] in
                 self?.appendControlLog(message)
             }
@@ -157,26 +149,6 @@ private final class RemoteControlRunner: ObservableObject {
             let dropCount = logText.count - maxCharacters
             logText.removeFirst(dropCount)
         }
-    }
-
-    private func ensureHIDListenAccess() -> Bool {
-        switch checkHIDListenAccess() {
-        case .granted:
-            return true
-        case .denied:
-            appendSystemLog("input monitoring is denied for OBSBOT Remote")
-        case .unknown:
-            appendSystemLog("requesting input monitoring access")
-        }
-
-        if requestHIDListenAccess() || checkHIDListenAccess() == .granted {
-            return true
-        }
-
-        status = "Input access needed"
-        appendSystemLog("grant Input Monitoring to OBSBOT Remote, then quit and reopen the app")
-        appendSystemLog("app path: \(Bundle.main.bundleURL.path)")
-        return false
     }
 
     private static let timestampFormatter: DateFormatter = {

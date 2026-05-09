@@ -2,7 +2,7 @@
 
 Native macOS CLI and menu bar controller for using the OBSBOT Smart Remote 2 with an OBSBOT Tiny-series camera without running OBSBOT Center.
 
-The project is Swift-first. It uses Apple system frameworks directly: IOHIDManager for the remote dongle and IOKit/IOUSBLib for camera controls.
+The project is Swift-first. It uses Apple system frameworks directly: Carbon global hotkeys for the menu app, IOHIDManager for CLI remote capture, and IOKit/IOUSBLib for camera controls.
 
 Current status:
 
@@ -11,7 +11,7 @@ Current status:
 - standard UVC zoom and pan/tilt lab commands are working;
 - OBSBOT vendor extension-unit probing is working;
 - OBSBOT sleep/wake is working through `control`; AI tracking mode buttons are mapped for testing;
-- the menu bar app can start/stop the live control process and show logs.
+- the menu bar app can start/stop live control and show logs.
 
 ## Setup
 
@@ -39,7 +39,7 @@ scripts/build-menu-app.sh
 open ".build/OBSBOT Remote.app"
 ```
 
-Click the menu bar video icon to start or stop live remote control, open the log, or quit. The menu app opens the remote dongle in normal HID listening mode and does not block remote keystrokes from reaching other apps. macOS may ask for Input Monitoring access before HID listening is allowed.
+Click the menu bar video icon to start or stop live remote control, open the log, or quit. The menu app registers the enabled remote shortcuts from `Resources/remote-button-capture.json` as macOS global hotkeys and does not open the remote HID device.
 
 Remote discovery and mapping:
 

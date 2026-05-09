@@ -20,7 +20,7 @@ swift run obsbot-remote map-buttons --reset
 
 The mapper uses normal listening by default because macOS denied exclusive seizure for the local Terminal-launched process. Remote keypresses may reach the focused app during mapping.
 
-Captured buttons include an `enabled` field. Disabled captures stay in the keymap for reference but are ignored by live matching.
+Captured buttons include an `enabled` field. Disabled captures stay in the keymap for reference but are ignored by live matching. The menu app registers enabled captures as macOS global hotkeys.
 
 You can still test exclusive capture explicitly:
 

@@ -45,9 +45,10 @@ let package = Package(
         ),
         .executableTarget(
             name: "ObsbotRemoteMenu",
-            dependencies: ["ObsbotRemoteControl"],
+            dependencies: ["ObsbotRemoteCore", "ObsbotRemoteControl"],
             linkerSettings: [
                 .linkedFramework("AppKit"),
+                .linkedFramework("Carbon"),
                 .linkedFramework("SwiftUI"),
             ]
         ),

@@ -1,10 +1,10 @@
 # Architecture
 
-`obsBotRemote` is a native macOS CLI and menu bar controller. It listens for OBSBOT Smart Remote 2 HID input and translates known button presses into camera controls for an OBSBOT Tiny 2.
+`obsBotRemote` is a native macOS CLI and menu bar controller. It translates known OBSBOT Smart Remote 2 button presses into camera controls for an OBSBOT Tiny 2.
 
 ## Project Shape
 
-The project uses Apple system frameworks for remote input and camera control.
+The project uses Apple system frameworks for remote input and camera control. The CLI uses IOHIDManager for remote capture and mapping. The menu app registers the remote's enabled keyboard shortcuts as global hotkeys.
 
 ## Runtime Shape
 
@@ -12,10 +12,10 @@ The project uses Apple system frameworks for remote input and camera control.
 Smart Remote 2 USB dongle
         |
         v
-IOHIDManager device match/open
+keyboard shortcut or IOHID event
         |
         v
-HID event decoder
+hotkey / HID decoder
         |
         v
 keymap / action dispatcher
@@ -48,7 +48,7 @@ The Swift CLI lists USB devices, sniffs HID events, decodes live remote input, p
 - remote button capture models and matching;
 - HID manager helpers and event collection;
 - remote-button to camera-action mapping;
-- shared HID live control session used by the menu app.
+- foreground HID live control session used by the CLI.
 
 `ObsbotRemoteUSBBridge` is a small C target that wraps IOUSBLib calls needed for USB configuration descriptors and control requests. Swift owns the UVC parsing and command decisions.
 
@@ -66,7 +66,7 @@ The Swift CLI lists USB devices, sniffs HID events, decodes live remote input, p
 - `camera-xu-get` and `camera-xu-dump` inspect UVC extension-unit selectors;
 - `uvc-controls` reports the native UVC implementation status.
 
-`ObsbotRemoteMenu` owns the menu bar app. It runs as an accessory app, shows a menu bar popover, starts/stops the shared live control session, and displays logs. It opens the remote in normal HID listening mode.
+`ObsbotRemoteMenu` owns the menu bar app. It runs as an accessory app, shows a menu bar popover, starts/stops live control, displays logs, and registers enabled remote shortcuts from `Resources/remote-button-capture.json` as macOS global hotkeys.
 
 CLI implementation is split by concern:
 
@@ -104,7 +104,7 @@ These references informed the current UVC extension-unit work:
 
 The tool controls camera state but must not take ownership of the video stream. Zoom, Meet, OBS, and other apps should still use the camera while this tool adjusts supported controls.
 
-Normal HID listening keeps startup simple but does not prevent remote keystrokes from reaching the focused app. macOS may still require Input Monitoring access for IOHIDManager event delivery. HID device seizure or a focused event blocker can be revisited if key leakage is unacceptable.
+The menu app registers only enabled shortcuts from `Resources/remote-button-capture.json`; disabled captures stay in the keymap but are not active. CLI HID commands may require macOS privacy approval when IOHIDManager is used.
 
 ## Test Strategy
 
@@ -116,7 +116,8 @@ CI runs on macOS only because the package imports IOKit.
 
 Keep the package small until hardware behavior is known:
 
-- `HIDRemoteReader` for IOHIDManager matching, seizure, and callbacks;
+- `HIDRemoteReader` for CLI IOHIDManager matching, seizure, and callbacks;
+- `RemoteHotKeyReader` for menu-app global shortcut registration;
 - `Keymap` for mapping confirmed HID usage values to camera actions;
 - shared command loop that connects decoded buttons to `UVCController` for CLI and menu use;
 - compact menu bar popover camera controls for non-remote users;
