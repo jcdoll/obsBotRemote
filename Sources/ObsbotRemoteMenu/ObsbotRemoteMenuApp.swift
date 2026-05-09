@@ -80,9 +80,11 @@ private final class RemoteControlRunner: ObservableObject {
             return
         }
 
-        let session = RemoteControlSession(
-            configuration: RemoteControlSessionConfiguration(requireSeize: true)
-        ) { [weak self] message in
+        let configuration = RemoteControlSessionConfiguration(
+            buttonCaptureURL: remoteButtonCaptureURL(),
+            requireSeize: true
+        )
+        let session = RemoteControlSession(configuration: configuration) { [weak self] message in
             Task { @MainActor [weak self] in
                 self?.appendControlLog(message)
             }
@@ -166,6 +168,13 @@ private final class RemoteControlRunner: ObservableObject {
         formatter.dateFormat = "HH:mm:ss"
         return formatter
     }()
+
+    private func remoteButtonCaptureURL() -> URL {
+        if let bundledURL = Bundle.main.url(forResource: "remote-button-capture", withExtension: "json") {
+            return bundledURL
+        }
+        return defaultRemoteButtonCaptureURL
+    }
 }
 
 private struct RemotePopoverView: View {
