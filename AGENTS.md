@@ -23,6 +23,7 @@ Current status:
 - `Sources/ObsbotRemoteSelfTest/` -- no-dependency self-test executable for bare Command Line Tools installs.
 - `docs/` -- architecture and operational notes.
 - `docs/release.md` -- Developer ID, notarization, GitHub release, and Homebrew cask process.
+- `.agents/skills/obsbot-release/` -- repo-local Codex skill for release packaging and distribution work.
 - `scripts/build-menu-app.sh` -- local `.app` bundle builder for menu bar testing.
 - `obsbot-remote-daemon-plan.md` -- initial research plan and hardware-discovery notes. Prefer current docs for status.
 - `.github/workflows/ci.yml` -- macOS Swift build and test.
