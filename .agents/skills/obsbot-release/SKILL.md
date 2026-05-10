@@ -30,6 +30,7 @@ If release behavior changes, update `docs/release.md` first. Keep command blocks
 - Keep the bundle identifier `com.jcdoll.obsbotremote` unless the user explicitly changes product identity.
 - Keep the Homebrew cask token `obsbot-remote`.
 - Keep the Homebrew tap path discoverable through `brew --repo jcdoll/tap`; do not hardcode a machine-local absolute path.
+- Expect a sibling `homebrew-tap` checkout to exist near the product repo. Discover it relative to the product repo or through Git remotes; if discovery is ambiguous, ask the user where the tap repo lives.
 
 ## Version-Driven Release Contract
 
@@ -68,6 +69,22 @@ Before a full release, confirm or discover:
 - GitHub CLI authentication with release permissions for `jcdoll/obsBotRemote`.
 - Homebrew tap availability at `jcdoll/tap`.
 
+## Homebrew Tap Checkout Discovery
+
+There may be two local paths involved in the Homebrew step:
+
+- the active Homebrew tap checkout from `brew --repo jcdoll/tap`, used by `brew audit`, `brew install`, and `brew uninstall`;
+- the sibling `homebrew-tap` repository checkout, used for normal GitHub commits and pushes when it exists.
+
+Do not hardcode either path. Discover the tap in this order:
+
+1. Run `brew --repo jcdoll/tap` and inspect that checkout with `git remote -v`.
+2. From the product repo root, check whether a sibling `../homebrew-tap` checkout exists and inspect it with `git remote -v`.
+3. If the Homebrew tap checkout pushes to a local path instead of GitHub, do not force-push from that checkout. Apply or fast-forward the same cask change into the sibling `homebrew-tap` checkout and push from the sibling repo to GitHub.
+4. If there are multiple plausible tap checkouts, or no sibling checkout can be found, stop and ask the user for the tap repo location.
+
+Before pushing the cask update, verify that the repo being pushed has a GitHub remote for `jcdoll/homebrew-tap`.
+
 ## Full Release Sequence
 
 Use this sequence for a complete release:
@@ -100,7 +117,7 @@ Use this sequence for a complete release:
    - Run `brew audit --cask obsbot-remote`.
    - Run `brew install --cask obsbot-remote`.
    - Run `brew uninstall --cask obsbot-remote`.
-   - Commit and push the tap.
+   - Commit and push through the sibling `homebrew-tap` checkout if the active tap checkout's push remote is local.
 7. Final verification:
    - Fresh user command should work: `brew tap jcdoll/tap && brew install --cask obsbot-remote`.
    - The installed app should launch as `OBSBOT Remote`.
