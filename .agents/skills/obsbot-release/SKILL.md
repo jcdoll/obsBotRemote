@@ -7,7 +7,7 @@ description: Use when cutting, packaging, signing, notarizing, publishing, or Ho
 
 Use this repo-local skill for release work only. The product release path is a Developer ID signed and notarized `OBSBOT Remote.app` distributed through a Homebrew cask.
 
-This skill should be detailed enough for an agent to run the full release when the user explicitly asks for publishing. It covers the application repository, GitHub release, and Homebrew tap update.
+This skill should be detailed enough for an agent to run the full release when the user explicitly asks for publishing. It covers the application repository, GitHub release, and Homebrew tap update. For normal releases, the user should only need to provide the version number.
 
 ## Source of Truth
 
@@ -31,6 +31,21 @@ If release behavior changes, update `docs/release.md` first. Keep command blocks
 - Keep the Homebrew cask token `obsbot-remote`.
 - Keep the Homebrew tap path discoverable through `brew --repo jcdoll/tap`; do not hardcode a machine-local absolute path.
 
+## Version-Driven Release Contract
+
+When the user asks for a release and specifies a version, treat that version as the release input. Do not ask the user to manually edit release files.
+
+For a requested `VERSION`:
+
+- Infer `APP_VERSION="$VERSION"`.
+- Increment `APP_BUILD` from the current default in `scripts/build-menu-app.sh` unless the user specifies a build number.
+- Update the default `APP_VERSION` and `APP_BUILD` in `scripts/build-menu-app.sh`.
+- Update `docs/release.md` examples and Homebrew commit text to the requested version.
+- Use artifact name `OBSBOT-Remote-$VERSION.zip`.
+- Use tag and GitHub release name `v$VERSION`.
+- Update `Casks/obsbot-remote.rb` in `$(brew --repo jcdoll/tap)` to the requested version and the final zip SHA256.
+- Verify no stale previous release version remains in release instructions, app bundle metadata, or the cask where it would mislead the next release.
+
 ## Operating Rules
 
 - Before editing release files, inspect `git status --short`.
@@ -46,8 +61,8 @@ If release behavior changes, update `docs/release.md` first. Keep command blocks
 
 Before a full release, confirm or discover:
 
-- `VERSION`, such as `0.1.0`.
-- `CFBundleShortVersionString` and `CFBundleVersion` in `scripts/build-menu-app.sh`.
+- `VERSION`, such as `0.2.0`. This should be the only required user input for a normal release.
+- `APP_VERSION` and `APP_BUILD` defaults in `scripts/build-menu-app.sh`.
 - Developer ID signing identity from `security find-identity -v -p codesigning`.
 - Notary keychain profile name, currently `obsbot-remote-notary`.
 - GitHub CLI authentication with release permissions for `jcdoll/obsBotRemote`.
@@ -64,7 +79,7 @@ Use this sequence for a complete release:
    - `swift run obsbot-remote-self-test`
    - `swift build --configuration release`
 2. Confirm version:
-   - Check `CFBundleShortVersionString` and `CFBundleVersion` in `scripts/build-menu-app.sh`.
+   - Check `APP_VERSION` and `APP_BUILD` in `scripts/build-menu-app.sh`.
    - Check that `v$VERSION` does not already exist locally, remotely, or as a GitHub release.
 3. Build and sign:
    - Run the build/signing block from `docs/release.md`.
@@ -117,7 +132,7 @@ Use this cask structure unless the project metadata changes:
 
 ```ruby
 cask "obsbot-remote" do
-  version "0.1.0"
+  version "0.2.0"
   sha256 "REPLACE_WITH_FINAL_ZIP_SHA256"
 
   url "https://github.com/jcdoll/obsBotRemote/releases/download/v#{version}/OBSBOT-Remote-#{version}.zip"

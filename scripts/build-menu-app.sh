@@ -4,6 +4,8 @@ set -euo pipefail
 CONFIGURATION="${1:-release}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_DIR="$REPO_ROOT/.build/OBSBOT Remote.app"
+APP_VERSION="${APP_VERSION:-0.2.0}"
+APP_BUILD="${APP_BUILD:-2}"
 
 cd "$REPO_ROOT"
 swift build --product obsbot-remote-menu --configuration "$CONFIGURATION"
@@ -16,7 +18,7 @@ mkdir -p "$APP_DIR/Contents/MacOS" "$APP_DIR/Contents/Resources"
 cp "$EXECUTABLE" "$APP_DIR/Contents/MacOS/OBSBOT Remote"
 cp "$REPO_ROOT/Resources/remote-button-capture.json" "$APP_DIR/Contents/Resources/remote-button-capture.json"
 
-cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
+cat > "$APP_DIR/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
   "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -35,9 +37,9 @@ cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleShortVersionString</key>
-  <string>0.1.0</string>
+  <string>${APP_VERSION}</string>
   <key>CFBundleVersion</key>
-  <string>1</string>
+  <string>${APP_BUILD}</string>
   <key>LSMinimumSystemVersion</key>
   <string>13.0</string>
   <key>LSUIElement</key>

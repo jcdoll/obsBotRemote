@@ -130,16 +130,18 @@ An empty history is fine. Authentication errors are not.
 
 ## Version Update
 
-Before building a release, update the app version in `scripts/build-menu-app.sh`:
+Before building a release, pick the release version and build number:
 
-- `CFBundleShortVersionString`: user-facing release version, such as `0.1.0`.
-- `CFBundleVersion`: monotonically increasing build number, such as `1`.
+- `VERSION`: user-facing release version, such as `0.2.0`.
+- `APP_BUILD`: monotonically increasing build number, such as `2`.
 
 Use a clean working tree before cutting a release:
 
 ```bash
 git status --short
 ```
+
+The bundle script reads `APP_VERSION` and `APP_BUILD` from the environment and has current defaults for the active release. A release agent should update `scripts/build-menu-app.sh`, this document, the GitHub release, and the Homebrew cask from the single requested version number.
 
 ## Build, Sign, Notarize, and Package
 
@@ -148,7 +150,8 @@ Run release commands from the repository root.
 Run the build and signing block:
 
 ```bash
-VERSION="0.1.0"
+VERSION="0.2.0"
+APP_BUILD="2"
 IDENTITY="$(security find-identity -v -p codesigning | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | head -1)"
 NOTARY_PROFILE="obsbot-remote-notary"
 APP=".build/OBSBOT Remote.app"
@@ -161,9 +164,11 @@ printf 'Signing identity: %s\n' "$IDENTITY"
 
 rm -rf "$ARTIFACT_DIR"
 mkdir -p "$ARTIFACT_DIR"
+scripts/lint-swift-format.sh
 swift build
 swift run obsbot-remote-self-test
-scripts/build-menu-app.sh release
+swift build --configuration release
+APP_VERSION="$VERSION" APP_BUILD="$APP_BUILD" scripts/build-menu-app.sh release
 
 codesign --force --deep --options runtime --timestamp --sign "$IDENTITY" "$APP"
 codesign --verify --deep --strict --verbose=2 "$APP"
@@ -174,7 +179,7 @@ The local build script ad-hoc signs the app for development. The `codesign` comm
 Run the notarization and final packaging block:
 
 ```bash
-VERSION="0.1.0"
+VERSION="0.2.0"
 NOTARY_PROFILE="obsbot-remote-notary"
 APP=".build/OBSBOT Remote.app"
 ARTIFACT_DIR=".build/release-artifacts"
@@ -204,7 +209,7 @@ shasum -a 256 "$FINAL_ZIP"
 Create a tag and upload the final archive. Run this from the repository root after creating the final zip:
 
 ```bash
-VERSION="0.1.0"
+VERSION="0.2.0"
 FINAL_ZIP=".build/release-artifacts/OBSBOT-Remote-$VERSION.zip"
 SHA256="$(shasum -a 256 "$FINAL_ZIP" | awk '{print $1}')"
 NOTES_FILE="$(mktemp)"
@@ -256,7 +261,7 @@ Create `Casks/obsbot-remote.rb` in that tap:
 
 ```ruby
 cask "obsbot-remote" do
-  version "0.1.0"
+  version "0.2.0"
   sha256 "REPLACE_WITH_FINAL_ZIP_SHA256"
 
   url "https://github.com/jcdoll/obsBotRemote/releases/download/v#{version}/OBSBOT-Remote-#{version}.zip"
@@ -287,7 +292,7 @@ Push the tap:
 cd "$(brew --repo jcdoll/tap)"
 git status --short
 git add Casks/obsbot-remote.rb
-git commit -m "Add obsbot-remote cask"
+git commit -m "Update obsbot-remote to 0.2.0"
 git push
 ```
 
@@ -304,6 +309,7 @@ This command works on other Macs as long as the tap repository and release asset
 
 - `swift build` passes.
 - `swift run obsbot-remote-self-test` passes.
+- `swift build --configuration release` passes.
 - `scripts/build-menu-app.sh release` creates `OBSBOT Remote.app`.
 - `codesign --verify --deep --strict` passes.
 - `notarytool submit --wait` returns accepted.
