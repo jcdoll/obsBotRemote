@@ -13,9 +13,7 @@ struct CameraControlsWindowView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
-      header
-      Divider()
-      powerControls
+      topControls
       Divider()
       gimbalAndSteps
       Divider()
@@ -24,18 +22,24 @@ struct CameraControlsWindowView: View {
       aiModeControls
     }
     .padding(18)
-    .frame(minWidth: 420, idealWidth: 440, minHeight: 430)
+    .frame(minWidth: 400, idealWidth: 420, minHeight: 370)
     .onAppear {
       viewModel.loadInitialState()
     }
   }
 
-  private var header: some View {
-    HStack(alignment: .top) {
-      Text("Camera Controls")
-        .font(.headline)
+  private var topControls: some View {
+    HStack(alignment: .center, spacing: 14) {
+      Button {
+        viewModel.togglePower()
+      } label: {
+        Label(viewModel.powerButtonTitle, systemImage: viewModel.powerButtonSystemImage)
+      }
+      .buttonStyle(.bordered)
+
       Spacer()
-      VStack(alignment: .trailing, spacing: 2) {
+
+      HStack(spacing: 12) {
         Text(viewModel.panText)
         Text(viewModel.tiltText)
         Text(viewModel.zoomText)
@@ -44,22 +48,6 @@ struct CameraControlsWindowView: View {
       .monospacedDigit()
       .foregroundStyle(.secondary)
     }
-  }
-
-  private var powerControls: some View {
-    HStack(spacing: 10) {
-      Button {
-        viewModel.wake()
-      } label: {
-        Label("Wake", systemImage: "power")
-      }
-      Button {
-        viewModel.sleep()
-      } label: {
-        Label("Sleep", systemImage: "moon")
-      }
-    }
-    .buttonStyle(.bordered)
   }
 
   private var gimbalAndSteps: some View {
@@ -150,7 +138,6 @@ struct CameraControlsWindowView: View {
             set: { viewModel.setDisplayedZoom($0) }
           ),
           in: viewModel.zoomRange,
-          step: 1,
           onEditingChanged: { editing in
             if !editing {
               viewModel.setZoomFromSlider()

@@ -10,6 +10,7 @@ final class CameraControlsViewModel: ObservableObject {
   @Published var zoomValue = 0.0
   @Published var zoomRange = 0.0...100.0
   @Published var aiModeChoice = CameraAIModeChoice.off
+  @Published private var runStatus: OBSBOTRunStatus?
   @Published var panTiltStep: Int {
     didSet {
       coordinator.updatePanTiltStep(Int32(panTiltStep))
@@ -57,12 +58,47 @@ final class CameraControlsViewModel: ObservableObject {
     }
   }
 
-  func wake() {
-    runCommand(coordinator.wake)
+  var powerButtonTitle: String {
+    switch runStatus {
+    case .some(.run):
+      "Sleep"
+    case .some(.sleep), .some(.privacy):
+      "Wake"
+    case .some(.unknown), nil:
+      "Power"
+    }
   }
 
-  func sleep() {
-    runCommand(coordinator.sleep)
+  var powerButtonSystemImage: String {
+    switch runStatus {
+    case .some(.run):
+      "moon"
+    default:
+      "power"
+    }
+  }
+
+  func togglePower() {
+    let target: OBSBOTRunStatus
+    switch runStatus {
+    case .some(.run):
+      target = .sleep
+    default:
+      target = .run
+    }
+
+    switch target {
+    case .run:
+      coordinator.wake { [weak self] result in
+        self?.handlePowerResult(result, target: target)
+      }
+    case .sleep:
+      coordinator.sleep { [weak self] result in
+        self?.handlePowerResult(result, target: target)
+      }
+    case .privacy, .unknown:
+      log("Camera error: unsupported power target \(target)")
+    }
   }
 
   func center() {
@@ -138,6 +174,19 @@ final class CameraControlsViewModel: ObservableObject {
     }
   }
 
+  private func handlePowerResult(
+    _ result: CameraControlCommandResult<String>,
+    target: OBSBOTRunStatus
+  ) {
+    switch result {
+    case .success(let message):
+      runStatus = target
+      log(message)
+    case .failure(let message):
+      log("Camera error: \(message)")
+    }
+  }
+
   private func displayedZoomTarget(delta: Int) -> Int {
     let current = Int(zoomValue.rounded())
     return max(Int(zoomRange.lowerBound), min(current + delta, Int(zoomRange.upperBound)))
@@ -174,6 +223,7 @@ final class CameraControlsViewModel: ObservableObject {
   }
 
   private func apply(_ snapshot: CameraControlSnapshot) {
+    runStatus = snapshot.runStatus
     applyDisplayedPanTilt(pan: snapshot.panTilt.pan, tilt: snapshot.panTilt.tilt)
     applyDisplayedZoom(snapshot.zoom)
     zoomValue = Double(snapshot.zoom)
