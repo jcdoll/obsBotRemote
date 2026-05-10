@@ -3,7 +3,6 @@ import SwiftUI
 
 @MainActor
 final class CameraControlsViewModel: ObservableObject {
-  @Published var isBusy = false
   @Published var panText = "Pan 0"
   @Published var tiltText = "Tilt 0"
   @Published var zoomText = "Zoom 0"
@@ -24,8 +23,6 @@ final class CameraControlsViewModel: ObservableObject {
 
   private let coordinator: CameraControlCoordinator
   private let log: @MainActor (String) -> Void
-  private var pendingOperationCount = 0
-  private var queuedRefresh: Task<Void, Never>?
   private var readbackGeneration = 0
   private var panValue: Int32 = 0
   private var tiltValue: Int32 = 0
@@ -41,14 +38,8 @@ final class CameraControlsViewModel: ObservableObject {
     zoomStep = settings.zoomStep
   }
 
-  func refresh(showBusy: Bool = true, completion: (@MainActor () -> Void)? = nil) {
-    queuedRefresh?.cancel()
-    queuedRefresh = nil
+  func loadInitialState() {
     let generation = readbackGeneration
-
-    if showBusy {
-      beginBusy()
-    }
 
     coordinator.refresh { [weak self] result in
       guard let self else {
@@ -63,26 +54,21 @@ final class CameraControlsViewModel: ObservableObject {
       case .failure(let message):
         self.log("Camera error: \(message)")
       }
-
-      if showBusy {
-        self.finishBusy()
-      }
-      completion?()
     }
   }
 
   func wake() {
-    runCommand(coordinator.wake, coalescedRefresh: false)
+    runCommand(coordinator.wake)
   }
 
   func sleep() {
-    runCommand(coordinator.sleep, coalescedRefresh: false)
+    runCommand(coordinator.sleep)
   }
 
   func center() {
     invalidateReadback()
     applyDisplayedPanTilt(pan: 0, tilt: 0)
-    runCommand(coordinator.center, coalescedRefresh: false)
+    runCommand(coordinator.center)
   }
 
   func move(_ direction: CameraControlDirection) {
@@ -97,14 +83,14 @@ final class CameraControlsViewModel: ObservableObject {
     invalidateReadback()
     let target = displayedZoomTarget(delta: zoomStep)
     applyDisplayedZoom(target)
-    runCommand(coordinator.zoomIn, refreshOnSuccess: false)
+    runCommand(coordinator.zoomIn)
   }
 
   func zoomOut() {
     invalidateReadback()
     let target = displayedZoomTarget(delta: -zoomStep)
     applyDisplayedZoom(target)
-    runCommand(coordinator.zoomOut, refreshOnSuccess: false)
+    runCommand(coordinator.zoomOut)
   }
 
   func setZoomFromSlider() {
@@ -114,8 +100,7 @@ final class CameraControlsViewModel: ObservableObject {
     runCommand(
       { completion in
         coordinator.setZoom(target, completion: completion)
-      },
-      refreshOnSuccess: false
+      }
     )
   }
 
@@ -126,19 +111,15 @@ final class CameraControlsViewModel: ObservableObject {
     runCommand(
       { completion in
         coordinator.setAIMode(choice.mode, completion: completion)
-      },
-      refreshOnSuccess: false
+      }
     )
   }
 
   private func runCommand(
     _ command: (
       @escaping @MainActor @Sendable (CameraControlCommandResult<String>) -> Void
-    ) -> Void,
-    refreshOnSuccess: Bool = true,
-    coalescedRefresh: Bool = true
+    ) -> Void
   ) {
-    beginBusy()
     command { [weak self] result in
       guard let self else {
         return
@@ -146,21 +127,8 @@ final class CameraControlsViewModel: ObservableObject {
       switch result {
       case .success(let message):
         self.log(message)
-        guard refreshOnSuccess else {
-          self.finishBusy()
-          return
-        }
-        self.finishBusy()
-        if coalescedRefresh {
-          self.scheduleRefresh()
-        } else {
-          self.refresh(showBusy: false)
-        }
       case .failure(let message):
         self.log("Camera error: \(message)")
-        self.refresh(showBusy: false) {
-          self.finishBusy()
-        }
       }
     }
   }
@@ -201,24 +169,7 @@ final class CameraControlsViewModel: ObservableObject {
     tiltText = "Tilt \(tilt)"
   }
 
-  private func scheduleRefresh() {
-    cancelQueuedRefresh()
-    queuedRefresh = Task { @MainActor [weak self] in
-      try? await Task.sleep(for: .milliseconds(250))
-      guard !Task.isCancelled else {
-        return
-      }
-      self?.refresh(showBusy: false)
-    }
-  }
-
-  private func cancelQueuedRefresh() {
-    queuedRefresh?.cancel()
-    queuedRefresh = nil
-  }
-
   private func invalidateReadback() {
-    cancelQueuedRefresh()
     readbackGeneration += 1
   }
 
@@ -231,16 +182,6 @@ final class CameraControlsViewModel: ObservableObject {
     if let choice = CameraAIModeChoice(mode: snapshot.aiMode) {
       aiModeChoice = choice
     }
-  }
-
-  private func beginBusy() {
-    pendingOperationCount += 1
-    isBusy = true
-  }
-
-  private func finishBusy() {
-    pendingOperationCount = max(0, pendingOperationCount - 1)
-    isBusy = pendingOperationCount > 0
   }
 }
 
@@ -274,7 +215,7 @@ struct CameraControlsWindowView: View {
     .padding(18)
     .frame(minWidth: 420, idealWidth: 440, minHeight: 430)
     .onAppear {
-      viewModel.refresh()
+      viewModel.loadInitialState()
     }
   }
 
