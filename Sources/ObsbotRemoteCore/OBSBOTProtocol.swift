@@ -47,9 +47,11 @@ public enum OBSBOTRunStatus: Equatable, Sendable, CustomStringConvertible {
 public enum OBSBOTAIMode: Equatable, Sendable, CustomStringConvertible {
   case off
   case humanNormal
+  case humanUpperBody
   case humanCloseUp
   case hand
   case desk
+  case switching
   case unknown(statusMode: UInt8, statusSubMode: UInt8)
 
   public init(statusMode: UInt8, statusSubMode: UInt8) {
@@ -58,12 +60,16 @@ public enum OBSBOTAIMode: Equatable, Sendable, CustomStringConvertible {
       self = .off
     case (2, 0):
       self = .humanNormal
+    case (2, 1):
+      self = .humanUpperBody
     case (2, 2):
       self = .humanCloseUp
-    case (3, 0), (6, 0):
+    case (3, 0):
       self = .hand
     case (5, 0):
       self = .desk
+    case (6, 0):
+      self = .switching
     default:
       self = .unknown(statusMode: statusMode, statusSubMode: statusSubMode)
     }
@@ -75,12 +81,16 @@ public enum OBSBOTAIMode: Equatable, Sendable, CustomStringConvertible {
       "off"
     case .humanNormal:
       "humanNormal"
+    case .humanUpperBody:
+      "humanUpperBody"
     case .humanCloseUp:
       "humanCloseUp"
     case .hand:
       "hand"
     case .desk:
       "desk"
+    case .switching:
+      "switching"
     case .unknown(let mode, let subMode):
       "unknown(mode=\(formatHex(UInt32(mode), width: 2)), subMode=\(formatHex(UInt32(subMode), width: 2)))"
     }
@@ -92,13 +102,15 @@ public enum OBSBOTAIMode: Equatable, Sendable, CustomStringConvertible {
       (0, 0)
     case .humanNormal:
       (2, 0)
+    case .humanUpperBody:
+      (2, 1)
     case .humanCloseUp:
       (2, 2)
     case .hand:
       (3, 0)
     case .desk:
       (5, 0)
-    case .unknown:
+    case .switching, .unknown:
       nil
     }
   }

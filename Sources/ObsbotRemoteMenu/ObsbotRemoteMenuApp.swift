@@ -71,6 +71,11 @@ private final class MenuAppDelegate: NSObject, NSApplicationDelegate, NSMenuDele
     startStopMenuItem = startStopItem
     menu.addItem(startStopItem)
 
+    let controlsItem = NSMenuItem(
+      title: "Camera Controls...", action: #selector(showCameraControls(_:)), keyEquivalent: "")
+    controlsItem.target = self
+    menu.addItem(controlsItem)
+
     let logItem = NSMenuItem(title: "Log...", action: #selector(showLog(_:)), keyEquivalent: "")
     logItem.target = self
     menu.addItem(logItem)
@@ -100,20 +105,27 @@ private final class MenuAppDelegate: NSObject, NSApplicationDelegate, NSMenuDele
     runner.showLogWindow()
   }
 
+  @objc private func showCameraControls(_ sender: NSMenuItem) {
+    runner.showCameraControlsWindow()
+  }
+
   @objc private func quit(_ sender: NSMenuItem) {
     runner.quit()
   }
 }
 
 @MainActor
-private final class RemoteControlRunner: ObservableObject {
+final class RemoteControlRunner: ObservableObject {
   @Published private(set) var status = "Stopped"
   @Published private(set) var isRunning = false
   @Published private(set) var logText = ""
 
+  private let coordinator = CameraControlCoordinator()
   private var session: RemoteHotKeyControlSession?
   private var logWindow: NSWindow?
-  private var logWindowDelegate: LogWindowDelegate?
+  private var logWindowDelegate: WindowCloseDelegate?
+  private var controlsWindow: NSWindow?
+  private var controlsWindowDelegate: WindowCloseDelegate?
 
   func start() {
     guard !isRunning else {
@@ -121,8 +133,10 @@ private final class RemoteControlRunner: ObservableObject {
       return
     }
 
-    let session = RemoteHotKeyControlSession(buttonCaptureURL: remoteButtonCaptureURL()) {
-      [weak self] message in
+    let session = RemoteHotKeyControlSession(
+      buttonCaptureURL: remoteButtonCaptureURL(),
+      coordinator: coordinator
+    ) { [weak self] message in
       Task { @MainActor [weak self] in
         self?.appendControlLog(message)
       }
@@ -168,7 +182,7 @@ private final class RemoteControlRunner: ObservableObject {
     window.setContentSize(NSSize(width: 760, height: 460))
     window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
     window.isReleasedWhenClosed = false
-    let delegate = LogWindowDelegate { [weak self] in
+    let delegate = WindowCloseDelegate { [weak self] in
       self?.logWindow = nil
       self?.logWindowDelegate = nil
     }
@@ -179,9 +193,40 @@ private final class RemoteControlRunner: ObservableObject {
     NSApp.activate(ignoringOtherApps: true)
   }
 
+  func showCameraControlsWindow() {
+    if let controlsWindow {
+      controlsWindow.makeKeyAndOrderFront(nil)
+      NSApp.activate(ignoringOtherApps: true)
+      return
+    }
+
+    let controller = NSHostingController(
+      rootView: CameraControlsWindowView(runner: self, coordinator: coordinator)
+    )
+    let window = NSWindow(contentViewController: controller)
+    window.title = "OBSBOT Remote Camera Controls"
+    window.setContentSize(NSSize(width: 440, height: 440))
+    window.minSize = NSSize(width: 420, height: 420)
+    window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
+    window.isReleasedWhenClosed = false
+    let delegate = WindowCloseDelegate { [weak self] in
+      self?.controlsWindow = nil
+      self?.controlsWindowDelegate = nil
+    }
+    controlsWindowDelegate = delegate
+    window.delegate = delegate
+    controlsWindow = window
+    window.makeKeyAndOrderFront(nil)
+    NSApp.activate(ignoringOtherApps: true)
+  }
+
   func quit() {
     stop()
     NSApp.terminate(nil)
+  }
+
+  func appendCameraControlLog(_ message: String) {
+    appendControlLog("Camera Controls: \(message)")
   }
 
   private func appendSystemLog(_ message: String) {
@@ -243,7 +288,7 @@ private struct LogWindowView: View {
   }
 }
 
-private final class LogWindowDelegate: NSObject, NSWindowDelegate {
+private final class WindowCloseDelegate: NSObject, NSWindowDelegate {
   private let onClose: () -> Void
 
   init(onClose: @escaping () -> Void) {
