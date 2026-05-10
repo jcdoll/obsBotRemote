@@ -263,7 +263,7 @@ struct CameraControlsWindowView: View {
         Text("Step Size")
           .font(.subheadline)
           .fontWeight(.semibold)
-        Stepper(value: $viewModel.panTiltStep, in: 900...72_000, step: 900) {
+        Stepper(value: $viewModel.panTiltStep, in: 3_600...72_000, step: 3_600) {
           stepLabel(title: "Pan / tilt", value: "\(viewModel.panTiltStep)")
         }
         Stepper(value: $viewModel.zoomStep, in: 1...25, step: 1) {
