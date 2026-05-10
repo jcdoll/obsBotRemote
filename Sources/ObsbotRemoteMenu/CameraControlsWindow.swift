@@ -4,9 +4,8 @@ import SwiftUI
 @MainActor
 final class CameraControlsViewModel: ObservableObject {
   @Published var isBusy = false
-  @Published var actionText = "Ready."
-  @Published var runStatusText = "Unknown"
-  @Published var panTiltText = "Pan 0, tilt 0"
+  @Published var panText = "Pan 0"
+  @Published var tiltText = "Tilt 0"
   @Published var zoomText = "Zoom 0"
   @Published var aiModeText = "Unknown"
   @Published var zoomValue = 0.0
@@ -28,6 +27,8 @@ final class CameraControlsViewModel: ObservableObject {
   private var pendingOperationCount = 0
   private var queuedRefresh: Task<Void, Never>?
   private var readbackGeneration = 0
+  private var panValue: Int32 = 0
+  private var tiltValue: Int32 = 0
 
   init(
     coordinator: CameraControlCoordinator,
@@ -58,12 +59,9 @@ final class CameraControlsViewModel: ObservableObject {
       case .success(let snapshot):
         if generation == self.readbackGeneration {
           self.apply(snapshot)
-          if self.actionText == "Ready." {
-            self.actionText = "Camera ready."
-          }
         }
       case .failure(let message):
-        self.actionText = "Camera error: \(message)"
+        self.log("Camera error: \(message)")
       }
 
       if showBusy {
@@ -82,10 +80,14 @@ final class CameraControlsViewModel: ObservableObject {
   }
 
   func center() {
+    invalidateReadback()
+    applyDisplayedPanTilt(pan: 0, tilt: 0)
     runCommand(coordinator.center, coalescedRefresh: false)
   }
 
   func move(_ direction: CameraControlDirection) {
+    invalidateReadback()
+    applyDisplayedMove(direction)
     runCommand { completion in
       coordinator.move(direction, completion: completion)
     }
@@ -143,7 +145,6 @@ final class CameraControlsViewModel: ObservableObject {
       }
       switch result {
       case .success(let message):
-        self.actionText = message
         self.log(message)
         guard refreshOnSuccess else {
           self.finishBusy()
@@ -156,7 +157,6 @@ final class CameraControlsViewModel: ObservableObject {
           self.refresh(showBusy: false)
         }
       case .failure(let message):
-        self.actionText = "Camera error: \(message)"
         self.log("Camera error: \(message)")
         self.refresh(showBusy: false) {
           self.finishBusy()
@@ -173,6 +173,32 @@ final class CameraControlsViewModel: ObservableObject {
   private func applyDisplayedZoom(_ zoom: Int) {
     zoomValue = Double(zoom)
     zoomText = "Zoom \(zoom)"
+  }
+
+  func setDisplayedZoom(_ value: Double) {
+    zoomValue = value
+    zoomText = "Zoom \(Int(value.rounded()))"
+  }
+
+  private func applyDisplayedMove(_ direction: CameraControlDirection) {
+    let step = Int32(panTiltStep)
+    switch direction {
+    case .up:
+      applyDisplayedPanTilt(pan: panValue, tilt: clampedInt32(tiltValue, plus: step))
+    case .down:
+      applyDisplayedPanTilt(pan: panValue, tilt: clampedInt32(tiltValue, plus: -step))
+    case .left:
+      applyDisplayedPanTilt(pan: clampedInt32(panValue, plus: -step), tilt: tiltValue)
+    case .right:
+      applyDisplayedPanTilt(pan: clampedInt32(panValue, plus: step), tilt: tiltValue)
+    }
+  }
+
+  private func applyDisplayedPanTilt(pan: Int32, tilt: Int32) {
+    panValue = pan
+    tiltValue = tilt
+    panText = "Pan \(pan)"
+    tiltText = "Tilt \(tilt)"
   }
 
   private func scheduleRefresh() {
@@ -197,9 +223,8 @@ final class CameraControlsViewModel: ObservableObject {
   }
 
   private func apply(_ snapshot: CameraControlSnapshot) {
-    runStatusText = snapshot.runStatus.userFacingName
-    panTiltText = "Pan \(snapshot.panTilt.pan), tilt \(snapshot.panTilt.tilt)"
-    zoomText = "Zoom \(snapshot.zoom)"
+    applyDisplayedPanTilt(pan: snapshot.panTilt.pan, tilt: snapshot.panTilt.tilt)
+    applyDisplayedZoom(snapshot.zoom)
     zoomValue = Double(snapshot.zoom)
     zoomRange = Double(snapshot.zoomRange.minimum)...Double(snapshot.zoomRange.maximum)
     aiModeText = snapshot.aiMode.userFacingName
@@ -219,12 +244,14 @@ final class CameraControlsViewModel: ObservableObject {
   }
 }
 
+private func clampedInt32(_ value: Int32, plus delta: Int32) -> Int32 {
+  Int32(max(Int64(Int32.min), min(Int64(Int32.max), Int64(value) + Int64(delta))))
+}
+
 struct CameraControlsWindowView: View {
-  @ObservedObject var runner: RemoteControlRunner
   @StateObject private var viewModel: CameraControlsViewModel
 
   init(runner: RemoteControlRunner, coordinator: CameraControlCoordinator) {
-    self.runner = runner
     _viewModel = StateObject(
       wrappedValue: CameraControlsViewModel(coordinator: coordinator) { [weak runner] message in
         runner?.appendCameraControlLog(message)
@@ -243,11 +270,9 @@ struct CameraControlsWindowView: View {
       zoomControls
       Divider()
       aiModeControls
-      Divider()
-      footer
     }
     .padding(18)
-    .frame(minWidth: 420, idealWidth: 440, minHeight: 500)
+    .frame(minWidth: 420, idealWidth: 440, minHeight: 430)
     .onAppear {
       viewModel.refresh()
     }
@@ -255,22 +280,17 @@ struct CameraControlsWindowView: View {
 
   private var header: some View {
     HStack(alignment: .top) {
-      VStack(alignment: .leading, spacing: 3) {
-        Text("Camera Controls")
-          .font(.headline)
-        Text("Remote \(runner.status.lowercased())")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      }
+      Text("Camera Controls")
+        .font(.headline)
       Spacer()
-      VStack(alignment: .trailing, spacing: 3) {
-        Text(viewModel.runStatusText)
-          .font(.caption)
-          .foregroundStyle(.secondary)
-        Text(viewModel.panTiltText)
-          .font(.caption2)
-          .foregroundStyle(.secondary)
+      VStack(alignment: .trailing, spacing: 2) {
+        Text(viewModel.panText)
+        Text(viewModel.tiltText)
+        Text(viewModel.zoomText)
       }
+      .font(.caption)
+      .monospacedDigit()
+      .foregroundStyle(.secondary)
     }
   }
 
@@ -285,12 +305,6 @@ struct CameraControlsWindowView: View {
         viewModel.sleep()
       } label: {
         Label("Sleep", systemImage: "moon")
-      }
-      Spacer()
-      Button {
-        viewModel.refresh()
-      } label: {
-        Label("Refresh", systemImage: "arrow.clockwise")
       }
     }
     .buttonStyle(.bordered)
@@ -381,7 +395,7 @@ struct CameraControlsWindowView: View {
         Slider(
           value: Binding(
             get: { viewModel.zoomValue },
-            set: { viewModel.zoomValue = $0 }
+            set: { viewModel.setDisplayedZoom($0) }
           ),
           in: viewModel.zoomRange,
           step: 1,
@@ -425,17 +439,6 @@ struct CameraControlsWindowView: View {
       .pickerStyle(.segmented)
       .labelsHidden()
     }
-  }
-
-  private var footer: some View {
-    HStack {
-      Text(viewModel.actionText)
-        .font(.caption)
-        .foregroundStyle(.secondary)
-        .lineLimit(2)
-      Spacer()
-    }
-    .frame(minHeight: 32, alignment: .topLeading)
   }
 
   private func iconButton(
@@ -568,21 +571,6 @@ enum CameraAIModeChoice: String, CaseIterable, Identifiable {
       self = .desk
     case .unknown:
       return nil
-    }
-  }
-}
-
-extension OBSBOTRunStatus {
-  fileprivate var userFacingName: String {
-    switch self {
-    case .run:
-      "Awake"
-    case .sleep:
-      "Asleep"
-    case .privacy:
-      "Privacy"
-    case .unknown:
-      description
     }
   }
 }
