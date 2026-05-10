@@ -462,6 +462,7 @@ private struct RepeatButton<Label: View>: View {
 enum CameraAIModeChoice: String, CaseIterable, Identifiable {
   case off
   case track
+  case upper
   case closeUp
   case hand
   case desk
@@ -474,6 +475,8 @@ enum CameraAIModeChoice: String, CaseIterable, Identifiable {
       "Off"
     case .track:
       "Track"
+    case .upper:
+      "Upper"
     case .closeUp:
       "Close-up"
     case .hand:
@@ -489,6 +492,8 @@ enum CameraAIModeChoice: String, CaseIterable, Identifiable {
       .off
     case .track:
       .humanNormal
+    case .upper:
+      .humanUpperBody
     case .closeUp:
       .humanCloseUp
     case .hand:
@@ -504,13 +509,15 @@ enum CameraAIModeChoice: String, CaseIterable, Identifiable {
       self = .off
     case .humanNormal:
       self = .track
+    case .humanUpperBody:
+      self = .upper
     case .humanCloseUp:
       self = .closeUp
     case .hand:
       self = .hand
     case .desk:
       self = .desk
-    case .unknown:
+    case .switching, .unknown:
       return nil
     }
   }

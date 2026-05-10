@@ -48,7 +48,7 @@ aiMode=off
 
 Observed OBSBOT run status is stored in extension unit 2 selector 6, byte offset 9. The sleep/wake command is sent through extension unit 2 selector 2 as a 60-byte vendor packet.
 
-Observed Tiny-series AI mode status is stored in extension unit 2 selector 6 at byte offsets 24 and 28. The SDK's `cameraSetAiModeU(mode, subMode)` writes selector 6 with a 60-byte payload beginning `16 02 <mode> <subMode>`. Current remote mappings use human normal `(2, 0)`, human close-up `(2, 2)`, hand tracking `(3, 0)`, and desk mode `(5, 0)`.
+Observed Tiny-series AI mode status is stored in extension unit 2 selector 6 at byte offsets 24 and 28. The SDK's `cameraSetAiModeU(mode, subMode)` writes selector 6 with a 60-byte payload beginning `16 02 <mode> <subMode>`. Track, Upper, and Close-up all use `AiWorkModeHuman`, but they use different SDK submodes: Track is `AiSubModeNormal` `(2, 0)`, Upper is `AiSubModeUpperBody` `(2, 1)`, and Close-up is `AiSubModeCloseUp` `(2, 2)`. Current remote mappings also use hand tracking `(3, 0)` and desk mode `(5, 0)`. `AiWorkModeSwitching` `(6, 0)` is a transient status while the camera changes AI mode.
 
 Manual Tiny 3 validation: standard UVC `pan-tilt-abs` moves the physical gimbal; a `36_000` unit step is a visible 10-degree nudge. Live remote control currently uses `18_000` for a smaller nudge.
 

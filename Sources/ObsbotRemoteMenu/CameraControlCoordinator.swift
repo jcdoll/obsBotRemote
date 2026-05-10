@@ -308,12 +308,16 @@ extension OBSBOTAIMode {
       "Off"
     case .humanNormal:
       "Track"
+    case .humanUpperBody:
+      "Upper"
     case .humanCloseUp:
       "Close-up"
     case .hand:
       "Hand"
     case .desk:
       "Desk"
+    case .switching:
+      "Switching"
     case .unknown:
       description
     }
