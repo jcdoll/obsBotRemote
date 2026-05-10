@@ -54,7 +54,7 @@ final class CameraControlCoordinator: @unchecked Sendable {
 
   func updatePanTiltStep(_ step: Int32) {
     settingsLock.lock()
-    settings.panTiltStep = max(3_600, min(step, 72_000))
+    settings.panTiltStep = max(900, min(step, 72_000))
     settingsLock.unlock()
   }
 
