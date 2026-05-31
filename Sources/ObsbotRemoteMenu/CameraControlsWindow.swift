@@ -13,7 +13,7 @@ struct CameraControlsWindowView: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: 10) {
       topControls
       Divider()
       gimbalAndSteps
@@ -26,7 +26,7 @@ struct CameraControlsWindowView: View {
       Divider()
       imageControls
     }
-    .padding(18)
+    .padding(16)
     .frame(width: 520, alignment: .topLeading)
     .onAppear {
       viewModel.loadInitialState()
@@ -50,8 +50,6 @@ struct CameraControlsWindowView: View {
       }
       .buttonStyle(.bordered)
 
-      Spacer()
-
       HStack(spacing: 12) {
         Text(viewModel.panText)
         Text(viewModel.tiltText)
@@ -64,16 +62,17 @@ struct CameraControlsWindowView: View {
       Button(role: .destructive) {
         showingResetConfirmation = true
       } label: {
-        Image(systemName: "arrow.triangle.2.circlepath")
-          .frame(width: 28, height: 18)
+        Label("Reset Camera", systemImage: "arrow.triangle.2.circlepath")
       }
       .buttonStyle(.bordered)
-      .help("Reset camera")
+      .help("Factory reset and reboot camera")
+
+      Spacer(minLength: 0)
     }
   }
 
   private var gimbalAndSteps: some View {
-    HStack(alignment: .top, spacing: 24) {
+    HStack(alignment: .top, spacing: 20) {
       VStack(alignment: .leading, spacing: 10) {
         Text("Gimbal")
           .font(.subheadline)
@@ -176,15 +175,15 @@ struct CameraControlsWindowView: View {
   }
 
   private var aiModeControls: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      HStack {
+    VStack(alignment: .leading, spacing: 6) {
+      HStack(spacing: 8) {
         Text("AI Mode")
           .font(.subheadline)
           .fontWeight(.semibold)
-        Spacer()
         Text(viewModel.aiModeText)
           .font(.caption)
           .foregroundStyle(.secondary)
+        Spacer(minLength: 0)
       }
       Picker(
         "AI Mode",
@@ -199,11 +198,12 @@ struct CameraControlsWindowView: View {
       }
       .pickerStyle(.segmented)
       .labelsHidden()
+      .frame(width: 430, alignment: .leading)
     }
   }
 
   private var advancedSettingsControls: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: 6) {
       Text("Advanced")
         .font(.subheadline)
         .fontWeight(.semibold)
@@ -241,11 +241,12 @@ struct CameraControlsWindowView: View {
         }
       }
       .pickerStyle(.segmented)
+      .frame(width: 360, alignment: .leading)
     }
   }
 
   private var imageControls: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: 6) {
       Text("Image")
         .font(.subheadline)
         .fontWeight(.semibold)
@@ -325,7 +326,7 @@ struct CameraControlsWindowView: View {
         .monospacedDigit()
         .foregroundStyle(.secondary)
     }
-    .frame(width: 170)
+    .frame(width: 138)
   }
 
   private func imageSlider(
