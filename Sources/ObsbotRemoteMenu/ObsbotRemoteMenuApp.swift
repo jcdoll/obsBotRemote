@@ -205,8 +205,8 @@ final class RemoteControlRunner: ObservableObject {
     )
     let window = NSWindow(contentViewController: controller)
     window.title = "OBSBOT Remote Camera Controls"
-    window.setContentSize(NSSize(width: 520, height: 840))
-    window.minSize = NSSize(width: 500, height: 760)
+    window.setContentSize(NSSize(width: 520, height: 760))
+    window.minSize = NSSize(width: 500, height: 680)
     window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
     window.isReleasedWhenClosed = false
     let delegate = WindowCloseDelegate { [weak self] in

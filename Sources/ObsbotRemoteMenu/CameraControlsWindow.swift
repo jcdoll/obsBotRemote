@@ -27,7 +27,7 @@ struct CameraControlsWindowView: View {
       imageControls
     }
     .padding(18)
-    .frame(minWidth: 560, idealWidth: 620, minHeight: 800, idealHeight: 900)
+    .frame(width: 520, alignment: .topLeading)
     .onAppear {
       viewModel.loadInitialState()
     }
@@ -64,10 +64,11 @@ struct CameraControlsWindowView: View {
       Button(role: .destructive) {
         showingResetConfirmation = true
       } label: {
-        Label("Reset Camera", systemImage: "arrow.triangle.2.circlepath")
+        Image(systemName: "arrow.triangle.2.circlepath")
+          .frame(width: 28, height: 18)
       }
       .buttonStyle(.bordered)
-      .help("Factory reset and reboot camera")
+      .help("Reset camera")
     }
   }
 
@@ -275,6 +276,15 @@ struct CameraControlsWindowView: View {
         available: viewModel.saturationAvailable,
         commit: viewModel.setSaturationFromSlider
       )
+      imageSlider(
+        title: "White Balance",
+        value: Binding(
+          get: { viewModel.whiteBalanceValue },
+          set: { viewModel.setDisplayedWhiteBalance($0) }),
+        range: viewModel.whiteBalanceRange,
+        available: viewModel.whiteBalanceAvailable && !viewModel.whiteBalanceAuto,
+        commit: viewModel.setWhiteBalanceFromSlider
+      )
       HStack {
         Toggle(
           "Auto White Balance",
@@ -291,15 +301,6 @@ struct CameraControlsWindowView: View {
         }
         .buttonStyle(.bordered)
       }
-      imageSlider(
-        title: "White Balance",
-        value: Binding(
-          get: { viewModel.whiteBalanceValue },
-          set: { viewModel.setDisplayedWhiteBalance($0) }),
-        range: viewModel.whiteBalanceRange,
-        available: viewModel.whiteBalanceAvailable && !viewModel.whiteBalanceAuto,
-        commit: viewModel.setWhiteBalanceFromSlider
-      )
     }
   }
 
