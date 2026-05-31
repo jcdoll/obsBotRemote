@@ -294,43 +294,6 @@ expect(
 )
 expect(brightnessPacket.dropFirst(20).allSatisfy { $0 == 0 }, "OBSBOT brightness packet padding")
 
-let whiteBalanceAutoPacket = OBSBOTRemoteProtocol.makeWhiteBalancePacket(
-  mode: .auto,
-  kelvin: 5_000,
-  sequence: 0x0016
-)
-expect(whiteBalanceAutoPacket.count == 60, "OBSBOT white balance auto packet length")
-expect(
-  Array(whiteBalanceAutoPacket.prefix(24))
-    == [
-      0xAA, 0x25, 0x16, 0x00, 0x0C, 0x00, 0xC8, 0x97,
-      0x0A, 0x02, 0x42, 0x20, 0x08, 0x00, 0x7A, 0x22,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ].map(UInt8.init),
-  "OBSBOT white balance auto packet bytes"
-)
-expect(
-  whiteBalanceAutoPacket.dropFirst(24).allSatisfy { $0 == 0 },
-  "OBSBOT white balance auto padding")
-let whiteBalanceManualPacket = OBSBOTRemoteProtocol.makeWhiteBalancePacket(
-  mode: .manual,
-  kelvin: 5_000,
-  sequence: 0x0016
-)
-expect(whiteBalanceManualPacket.count == 60, "OBSBOT white balance manual packet length")
-expect(
-  whiteBalanceManualPacket.dropFirst(24).allSatisfy { $0 == 0 },
-  "OBSBOT white balance manual padding")
-expect(
-  Array(whiteBalanceManualPacket.prefix(24))
-    == [
-      0xAA, 0x25, 0x16, 0x00, 0x0C, 0x00, 0xC8, 0x97,
-      0x0A, 0x02, 0x42, 0x20, 0x08, 0x00, 0xEF, 0x43,
-      0xFF, 0x00, 0x00, 0x00, 0x88, 0x13, 0x00, 0x00,
-    ].map(UInt8.init),
-  "OBSBOT white balance manual packet bytes"
-)
-
 let humanNormalPayload = expectNoThrow("build OBSBOT human normal AI payload") {
   try OBSBOTRemoteProtocol.makeAIModePayload(.humanNormal)
 }

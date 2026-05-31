@@ -105,6 +105,15 @@ public enum UVCProcessingUnitControl: UInt8, CaseIterable, Sendable {
     self != .whiteBalanceComponent
   }
 
+  var isBooleanControl: Bool {
+    switch self {
+    case .hueAuto, .whiteBalanceTemperatureAuto, .whiteBalanceComponentAuto, .contrastAuto:
+      true
+    default:
+      false
+    }
+  }
+
   var isSigned: Bool {
     switch self {
     case .brightness, .hue:

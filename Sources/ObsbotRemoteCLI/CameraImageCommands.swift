@@ -66,10 +66,10 @@ extension CommandLineTool {
         print("uvcSaturation=\(saturation)")
       }
       if let whiteBalanceAuto = readback.whiteBalanceAuto {
-        print("uvcWhiteBalanceAuto=\(whiteBalanceAuto ? "on" : "off")")
+        print("uvcWhiteBalanceAutoRaw=\(whiteBalanceAuto ? "on" : "off")")
       }
       if let whiteBalanceKelvin = readback.whiteBalanceKelvin {
-        print("uvcWhiteBalanceKelvin=\(whiteBalanceKelvin)")
+        print("uvcWhiteBalanceKelvinRaw=\(whiteBalanceKelvin)")
       }
     } else {
       print("imageReadback=unsupported")

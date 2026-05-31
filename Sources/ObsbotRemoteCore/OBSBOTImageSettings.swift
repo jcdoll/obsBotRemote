@@ -90,19 +90,6 @@ extension OBSBOTRemoteProtocol {
     )
   }
 
-  public static func makeWhiteBalancePacket(
-    mode: OBSBOTWhiteBalanceMode,
-    kelvin: Int,
-    sequence: UInt16
-  ) -> [UInt8] {
-    let parameter = mode == .manual ? clampedWhiteBalanceKelvin(kelvin) : 0
-    return makeRMCommandPacket(
-      v3CommandID: 0x0081,
-      payload: makeUInt32Payload(mode.rawValue) + makeUInt32Payload(UInt32(parameter)),
-      sequence: sequence
-    )
-  }
-
   public static func clampedImageAdjustmentValue(_ value: Int) -> Int {
     max(imageAdjustmentRange.minimum, min(value, imageAdjustmentRange.maximum))
   }
@@ -207,20 +194,15 @@ extension UVCController {
   }
 
   public func setCameraWhiteBalance(mode: OBSBOTWhiteBalanceMode, kelvin: Int = 5_000) throws {
-    do {
-      switch mode {
-      case .auto:
-        try setProcessingControl(.whiteBalanceTemperatureAuto, value: 1)
-      case .manual:
-        try setProcessingControl(.whiteBalanceTemperatureAuto, value: 0)
-        let range = try? readProcessingControlRange(.whiteBalanceTemperature)
-        let clamped =
-          clamp(kelvin, to: range) ?? OBSBOTRemoteProtocol.clampedWhiteBalanceKelvin(kelvin)
-        try setProcessingControl(.whiteBalanceTemperature, value: clamped)
-      }
-      return
-    } catch {
-      try setOBSBOTWhiteBalance(mode: mode, kelvin: kelvin)
+    switch mode {
+    case .auto:
+      try setProcessingControl(.whiteBalanceTemperatureAuto, value: 1)
+    case .manual:
+      try setProcessingControl(.whiteBalanceTemperatureAuto, value: 0)
+      let range = try? readProcessingControlRange(.whiteBalanceTemperature)
+      let clamped =
+        clamp(kelvin, to: range) ?? OBSBOTRemoteProtocol.clampedWhiteBalanceKelvin(kelvin)
+      try setProcessingControl(.whiteBalanceTemperature, value: clamped)
     }
   }
 
@@ -243,27 +225,6 @@ extension UVCController {
       selector: OBSBOTRemoteProtocol.commandSelector,
       payload: packet
     )
-  }
-
-  public func setOBSBOTWhiteBalance(mode: OBSBOTWhiteBalanceMode, kelvin: Int = 5_000) throws {
-    let packet = OBSBOTRemoteProtocol.makeWhiteBalancePacket(
-      mode: mode,
-      kelvin: kelvin,
-      sequence: UInt16.random(in: 1...UInt16.max)
-    )
-    try setExtensionUnitCurrent(
-      unitID: OBSBOTRemoteProtocol.extensionUnitID,
-      selector: OBSBOTRemoteProtocol.commandSelector,
-      payload: packet
-    )
-  }
-
-  public func resetOBSBOTImageSettings() throws {
-    let neutral = OBSBOTRemoteProtocol.imageAdjustmentRange.defaultValue
-    try setOBSBOTImageAdjustment(.brightness, value: neutral)
-    try setOBSBOTImageAdjustment(.contrast, value: neutral)
-    try setOBSBOTImageAdjustment(.saturation, value: neutral)
-    try setOBSBOTWhiteBalance(mode: .auto)
   }
 }
 

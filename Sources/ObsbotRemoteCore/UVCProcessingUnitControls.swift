@@ -29,8 +29,8 @@ extension UVCController {
       throw UVCRequestError.unsupportedControl("\(control.displayName) scalar lab write")
     }
     let unit = try processingUnit(requiring: control)
-    let range = try? readProcessingControlRange(control)
-    let clamped = clamp(value, to: range)
+    let range = control.isBooleanControl ? nil : try? readProcessingControlRange(control)
+    let clamped = control.isBooleanControl ? value : clamp(value, to: range)
     var payload = processingPayload(for: control, value: clamped)
     try deviceRequest(
       operation: "SET_CUR \(control.displayName)",
