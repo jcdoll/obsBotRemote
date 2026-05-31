@@ -4,6 +4,30 @@ struct CameraControlsWindowView: View {
   @StateObject private var viewModel: CameraControlsViewModel
   @State private var showingResetConfirmation = false
 
+  private enum Layout {
+    static let windowWidth: CGFloat = 480
+    static let contentPadding: CGFloat = 14
+    static let contentWidth: CGFloat = windowWidth - (contentPadding * 2)
+    static let sectionSpacing: CGFloat = 10
+    static let controlSpacing: CGFloat = 8
+    static let rowSpacing: CGFloat = 10
+    static let iconButtonWidth: CGFloat = 42
+    static let iconButtonHeight: CGFloat = 32
+    static let topPowerWidth: CGFloat = 80
+    static let topStatusWidth: CGFloat = 228
+    static let topResetWidth: CGFloat = 128
+    static let panStatusWidth: CGFloat = 72
+    static let tiltStatusWidth: CGFloat = 72
+    static let zoomStatusWidth: CGFloat = 68
+    static let dPadWidth: CGFloat = 142
+    static let stepColumnWidth: CGFloat = 292
+    static let stepLabelWidth: CGFloat = 224
+    static let aiModeWidth: CGFloat = contentWidth
+    static let fieldOfViewWidth: CGFloat = contentWidth
+    static let imageLabelWidth: CGFloat = 98
+    static let imageValueWidth: CGFloat = 44
+  }
+
   init(runner: RemoteControlRunner, coordinator: CameraControlCoordinator) {
     _viewModel = StateObject(
       wrappedValue: CameraControlsViewModel(coordinator: coordinator) { [weak runner] message in
@@ -13,21 +37,21 @@ struct CameraControlsWindowView: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      topControls
+    VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
+      controlSection { topControls }
       Divider()
-      gimbalAndSteps
+      controlSection { gimbalAndSteps }
       Divider()
-      zoomControls
+      controlSection { zoomControls }
       Divider()
-      aiModeControls
+      controlSection { aiModeControls }
       Divider()
-      advancedSettingsControls
+      controlSection { advancedSettingsControls }
       Divider()
-      imageControls
+      controlSection { imageControls }
     }
-    .padding(14)
-    .frame(width: 480, alignment: .topLeading)
+    .padding(Layout.contentPadding)
+    .frame(width: Layout.windowWidth, alignment: .topLeading)
     .onAppear {
       viewModel.loadInitialState()
     }
@@ -42,22 +66,21 @@ struct CameraControlsWindowView: View {
   }
 
   private var topControls: some View {
-    HStack(alignment: .center, spacing: 8) {
+    HStack(alignment: .center, spacing: Layout.controlSpacing) {
       Button {
         viewModel.togglePower()
       } label: {
         Label(viewModel.powerButtonTitle, systemImage: viewModel.powerButtonSystemImage)
       }
       .buttonStyle(.bordered)
+      .frame(width: Layout.topPowerWidth)
 
-      HStack(spacing: 8) {
-        statusText(viewModel.panText, width: 68)
-        statusText(viewModel.tiltText, width: 78)
-        statusText(viewModel.zoomText, width: 46)
+      HStack(spacing: Layout.controlSpacing) {
+        statusText(viewModel.panText, width: Layout.panStatusWidth)
+        statusText(viewModel.tiltText, width: Layout.tiltStatusWidth)
+        statusText(viewModel.zoomText, width: Layout.zoomStatusWidth)
       }
-      .font(.caption)
-      .monospacedDigit()
-      .foregroundStyle(.secondary)
+      .frame(width: Layout.topStatusWidth, alignment: .leading)
 
       Button(role: .destructive) {
         showingResetConfirmation = true
@@ -65,9 +88,8 @@ struct CameraControlsWindowView: View {
         Label("Reset Camera", systemImage: "arrow.triangle.2.circlepath")
       }
       .buttonStyle(.bordered)
+      .frame(width: Layout.topResetWidth)
       .help("Factory reset and reboot camera")
-
-      Spacer(minLength: 0)
     }
   }
 
@@ -79,6 +101,7 @@ struct CameraControlsWindowView: View {
           .fontWeight(.semibold)
         dPad
       }
+      .frame(width: Layout.dPadWidth, alignment: .leading)
       VStack(alignment: .leading, spacing: 12) {
         Text("Step Size")
           .font(.subheadline)
@@ -86,26 +109,28 @@ struct CameraControlsWindowView: View {
         Stepper(value: $viewModel.panTiltStep, in: 3_600...72_000, step: 3_600) {
           stepLabel(title: "Pan / tilt", value: "\(viewModel.panTiltStep)")
         }
+        .frame(width: Layout.stepColumnWidth, alignment: .leading)
         Stepper(value: $viewModel.zoomStep, in: 1...25, step: 1) {
           stepLabel(title: "Zoom", value: "\(viewModel.zoomStep)")
         }
+        .frame(width: Layout.stepColumnWidth, alignment: .leading)
       }
-      Spacer(minLength: 0)
+      .frame(width: Layout.stepColumnWidth, alignment: .leading)
     }
   }
 
   private var dPad: some View {
-    Grid(horizontalSpacing: 8, verticalSpacing: 8) {
+    Grid(horizontalSpacing: Layout.controlSpacing, verticalSpacing: Layout.controlSpacing) {
       GridRow {
         Spacer()
-          .frame(width: 42, height: 32)
+          .frame(width: Layout.iconButtonWidth, height: Layout.iconButtonHeight)
         iconButton("arrow.up", help: "Move up") {
           viewModel.move(.up)
         } repeatAction: {
           viewModel.move(.up)
         }
         Spacer()
-          .frame(width: 42, height: 32)
+          .frame(width: Layout.iconButtonWidth, height: Layout.iconButtonHeight)
       }
       GridRow {
         iconButton("arrow.left", help: "Move left") {
@@ -124,14 +149,14 @@ struct CameraControlsWindowView: View {
       }
       GridRow {
         Spacer()
-          .frame(width: 42, height: 32)
+          .frame(width: Layout.iconButtonWidth, height: Layout.iconButtonHeight)
         iconButton("arrow.down", help: "Move down") {
           viewModel.move(.down)
         } repeatAction: {
           viewModel.move(.down)
         }
         Spacer()
-          .frame(width: 42, height: 32)
+          .frame(width: Layout.iconButtonWidth, height: Layout.iconButtonHeight)
       }
     }
   }
@@ -143,11 +168,9 @@ struct CameraControlsWindowView: View {
           .font(.subheadline)
           .fontWeight(.semibold)
         Spacer()
-        Text(viewModel.zoomText)
-          .font(.caption)
-          .foregroundStyle(.secondary)
+        statusText(viewModel.zoomText, width: Layout.zoomStatusWidth, alignment: .trailing)
       }
-      HStack(spacing: 10) {
+      HStack(spacing: Layout.rowSpacing) {
         iconButton("minus", help: "Zoom out") {
           viewModel.zoomOut()
         } repeatAction: {
@@ -198,7 +221,7 @@ struct CameraControlsWindowView: View {
       }
       .pickerStyle(.segmented)
       .labelsHidden()
-      .frame(width: 400, alignment: .leading)
+      .frame(width: Layout.aiModeWidth, alignment: .leading)
     }
   }
 
@@ -241,7 +264,7 @@ struct CameraControlsWindowView: View {
         }
       }
       .pickerStyle(.segmented)
-      .frame(width: 320, alignment: .leading)
+      .frame(width: Layout.fieldOfViewWidth, alignment: .leading)
     }
   }
 
@@ -315,6 +338,7 @@ struct CameraControlsWindowView: View {
       Image(systemName: symbol)
         .frame(width: 28, height: 18)
     }
+    .frame(width: Layout.iconButtonWidth, height: Layout.iconButtonHeight)
     .help(help)
   }
 
@@ -326,7 +350,7 @@ struct CameraControlsWindowView: View {
         .monospacedDigit()
         .foregroundStyle(.secondary)
     }
-    .frame(width: 116)
+    .frame(width: Layout.stepLabelWidth)
   }
 
   private func imageSlider(
@@ -336,9 +360,9 @@ struct CameraControlsWindowView: View {
     available: Bool,
     commit: @escaping () -> Void
   ) -> some View {
-    HStack(spacing: 10) {
+    HStack(spacing: Layout.rowSpacing) {
       Text(title)
-        .frame(width: 98, alignment: .leading)
+        .frame(width: Layout.imageLabelWidth, alignment: .leading)
       Slider(
         value: value,
         in: range,
@@ -352,15 +376,29 @@ struct CameraControlsWindowView: View {
       Text("\(Int(value.wrappedValue.rounded()))")
         .monospacedDigit()
         .foregroundStyle(.secondary)
-        .frame(width: 44, alignment: .trailing)
+        .frame(width: Layout.imageValueWidth, alignment: .trailing)
     }
   }
 
-  private func statusText(_ text: String, width: CGFloat) -> some View {
+  private func controlSection<Content: View>(
+    @ViewBuilder _ content: () -> Content
+  ) -> some View {
+    content()
+      .frame(width: Layout.contentWidth, alignment: .leading)
+  }
+
+  private func statusText(
+    _ text: String,
+    width: CGFloat,
+    alignment: Alignment = .leading
+  ) -> some View {
     Text(text)
+      .font(.caption)
+      .monospacedDigit()
+      .foregroundStyle(.secondary)
       .lineLimit(1)
       .minimumScaleFactor(0.85)
-      .frame(width: width, alignment: .leading)
+      .frame(width: width, alignment: alignment)
   }
 
 }
