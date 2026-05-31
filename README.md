@@ -141,7 +141,7 @@ swift run obsbot-remote camera-power on
 swift run obsbot-remote camera-power off
 ```
 
-Factory-reset the camera controls, recenter the gimbal, and reboot:
+Restore camera factory settings, recenter the gimbal, and reboot:
 
 ```bash
 swift run obsbot-remote camera-reset
@@ -171,7 +171,7 @@ swift run obsbot-remote camera-ai
 swift run obsbot-remote camera-ai off
 ```
 
-Set hand gesture controls. `--gesture-all off` disables the SDK legacy global gesture switch, current SDK gesture parameters, virtual-track gesture controls, hand-track pan/pitch, hand-track gimbal movement, selector-6 gesture framing/zoom, and forces AI mode off. Selector-2 readback is best-effort and may report `tinyGestureReadback=unavailable` on observed Tiny hardware:
+Set hand gesture controls. `--gesture-all off` sends the SDK Tiny gesture parameter/control writes, disables hand-track pan/pitch and hand-track gimbal movement, and forces AI mode off. Selector-2 readback is best-effort and may report `tinyGestureReadback=unavailable` on observed Tiny hardware; after writes the CLI skips selector-2 readback and reports selector-6 status separately:
 
 ```bash
 swift run obsbot-remote camera-gesture
@@ -185,7 +185,6 @@ swift run obsbot-remote camera-gesture --gesture-dynamic-zoom-direction off
 swift run obsbot-remote camera-gesture --gesture-record off
 swift run obsbot-remote camera-gesture --gesture-auto-frame off --selector6-gesture-zoom off
 swift run obsbot-remote camera-gesture --gesture-mode close-up --gesture-zoom-ratio 200
-swift run obsbot-remote camera-rm-send --command-set 0x03 --command-id 0x007C --payload "00 00 00 00 01"
 ```
 
 Inspect OBSBOT extension-unit controls:

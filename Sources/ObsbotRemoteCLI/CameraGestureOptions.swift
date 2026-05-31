@@ -39,8 +39,11 @@ struct CameraGestureOptions {
       case "--gesture-all", "--all":
         options.allTinyGestures = try parseBooleanArgument(
           arguments, &index, option: arguments[index])
-      case "--gesture-master", "--hand-gestures":
+      case "--gesture-master":
         options.master = try parseBooleanArgument(arguments, &index, option: arguments[index])
+      case "--hand-gestures":
+        options.allTinyGestures = try parseBooleanArgument(
+          arguments, &index, option: arguments[index])
       case "--gesture-target", "--gesture-target-selection":
         options.targetSelection = try parseBooleanArgument(
           arguments, &index, option: arguments[index])

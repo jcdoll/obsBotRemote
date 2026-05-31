@@ -9,8 +9,8 @@ Current status:
 - remote HID capture, guided button mapping, JSON resume/reset, live dry-run decoding, and foreground live control are implemented;
 - standard UVC `zoom-abs` and `pan-tilt-abs` lab commands are implemented through IOUSBLib control transfers;
 - UVC extension-unit parsing and `camera-xu-get`/`camera-xu-dump` are implemented;
-- OBSBOT run/sleep state and AI mode toggles are implemented through `control`;
-- the menu bar app includes a camera controls window for wake/sleep, pan/tilt, zoom, AI modes, and shared step sizes;
+- OBSBOT run/sleep state, AI modes, image controls, advanced settings, hand gesture controls, and full reset are implemented through the CLI lab bench;
+- the menu bar app includes a camera controls window for wake/sleep, reset, pan/tilt, zoom, AI modes, advanced settings, hand gestures, image controls, and shared step sizes;
 - `listen` is dry-run; `control` is live camera control.
 
 ## Repository Layout
@@ -50,6 +50,11 @@ swift run obsbot-remote camera-power status
 swift run obsbot-remote camera-power
 swift run obsbot-remote camera-power on
 swift run obsbot-remote camera-power off
+swift run obsbot-remote camera-ai
+swift run obsbot-remote camera-ai off
+swift run obsbot-remote camera-image
+swift run obsbot-remote camera-settings
+swift run obsbot-remote camera-gesture
 swift run obsbot-remote camera-reset
 swift run obsbot-remote camera-xu-dump
 swift run obsbot-remote camera-xu-get --unit 2 --selector 6 --length 60
@@ -62,6 +67,7 @@ Use `swift build --configuration release` before packaging or Homebrew work.
 ## OBSBOT SDK Reference
 
 - Official SDK page: <https://www.obsbot.com/sdk>. For Tiny-series webcam work, start from the SDK for OBSBOT Center. The page lists Tiny 3 as a compatible product and says the SDK supports macOS, Windows, and Linux.
+- The SDK page currently exposes the OBSBOT Center SDK archive as `https://resource-cdn.obsbothk.com/download/share/libdev_v2_1_0_8.zip?direct_download=1`. Verify the page before relying on that exact version; the same URL without `?direct_download=1` can return a CDN 403.
 - The SDK page may require OBSBOT sign-in or an SDK application. If the file is sent by email or downloaded by the browser, stage that exact zip locally before analysis. Prior work used an archive named like `libdev_v2_1_0_8.zip`; do not assume that remains current.
 - Before adding or changing OBSBOT vendor controls, inspect the SDK headers and library behavior first. Do not infer selector-2 payloads, command ids, readback shapes, or enable/disable semantics from UI labels alone.
 - Treat SDK internal command ids and wire command ids as separate concepts. Confirm the Tiny-series protocol version, command-set mapping, route bytes, packet flags, payload shape, and readback framing against the SDK before changing `OBSBOTProtocol` or gesture/image controls.

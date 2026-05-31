@@ -76,8 +76,8 @@ struct CommandLineTool {
         camera-ai [status|mode]        Read or set OBSBOT AI mode.
         camera-image [options]         Show supported ranges or set OBSBOT image controls.
         camera-settings [options]      Read or set OBSBOT camera settings.
-        camera-gesture [options]       Set OBSBOT hand gestures; readback is best-effort.
-        camera-reset [options]         Factory-reset camera controls and reboot.
+        camera-gesture [options]       Set OBSBOT hand gestures; readback is status-only.
+        camera-reset [options]         Restore factory settings, recenter, and reboot.
         camera-rm-send [options]       Send one OBSBOT selector-2 RM packet for diagnostics.
         camera-xu-get [options]        Read one UVC extension-unit selector.
         camera-xu-dump [options]       Read advertised UVC extension-unit selectors.
@@ -114,6 +114,7 @@ struct CommandLineTool {
         --fov <wide|medium|narrow>     Set OBSBOT field of view.
         --mode <mode>                  AI mode: off, track, upper, close-up, hand, desk.
         --gesture-all <on|off>         Set all known Tiny hand gesture switches.
+        --hand-gestures <on|off>       Alias for --gesture-all.
         --gesture-master <on|off>      Set Tiny global hand gesture recognition.
         --gesture-target <on|off>      Set Tiny target-selection gesture.
         --gesture-zoom <on|off>        Set Tiny zoom gesture.
@@ -126,8 +127,8 @@ struct CommandLineTool {
         --gesture-zoom-ratio <100-400> Set selector-6 zoom ratio.
         --no-reboot                    Do not reboot after camera-reset.
         --dry-run                      Print Tiny selector-2 packets without USB writes.
-        --command-set <id>             V3 command set for camera-rm-send.
-        --command-id <id>              V3 command id for camera-rm-send.
+        --command-set <id>             Wire command set for camera-rm-send.
+        --command-id <id>              Wire command id for camera-rm-send.
         --payload "<bytes>"            Hex or decimal byte list for camera-rm-send.
       """
     )

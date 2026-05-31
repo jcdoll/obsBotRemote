@@ -65,8 +65,8 @@ The Swift CLI lists USB devices, sniffs HID events, decodes live remote input, p
 - `camera-power` reads or toggles OBSBOT run/sleep state through the vendor extension unit;
 - `camera-image` reports supported OBSBOT image ranges and writes image controls;
 - `camera-settings` reads or writes OBSBOT HDR, face AE/AF, and field-of-view settings;
-- `camera-gesture` writes Tiny gesture master/trigger and hand-track controls, attempts best-effort selector-2 readback, and reads/writes selector-6 gesture settings;
-- `camera-reset` sends the SDK-derived gimbal stop, Tiny 3 gimbal reset, factory restore, and reboot sequence;
+- `camera-gesture` writes Tiny gesture master/trigger and hand-track controls, reads best-effort selector-2 core gesture parameters for status-only invocations, and reads/writes selector-6 gesture settings;
+- `camera-reset` sends the SDK-derived gimbal stop, Tiny 3 gimbal reset, factory restore, and optional reboot sequence;
 - `camera-xu-get` and `camera-xu-dump` inspect UVC extension-unit selectors;
 - `uvc-controls` reports the native UVC implementation status.
 

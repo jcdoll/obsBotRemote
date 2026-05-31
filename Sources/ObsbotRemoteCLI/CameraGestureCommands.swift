@@ -60,7 +60,7 @@ extension CommandLineTool {
       print("selector6 gesture settings updated")
     }
 
-    printOBSBOTGestureStatus(controller)
+    printOBSBOTGestureStatus(controller, includeTinyReadback: !options.hasMutations)
   }
 
   func printOBSBOTGestureDryRun(_ options: CameraGestureOptions) throws {
@@ -69,7 +69,7 @@ extension CommandLineTool {
       throw CLIError("--dry-run requires one or more camera-gesture mutation options")
     }
 
-    print("tinyGestureDryRun=selector2-sdk-v3-gesture-parameters")
+    print("tinyGestureDryRun=selector2-sdk-v3-gesture-commands")
     print("tinyGestureWriteCount=\(commands.count)")
     for (index, command) in commands.enumerated() {
       print(
@@ -84,7 +84,7 @@ extension CommandLineTool {
   }
 
   func printOBSBOTGestureStatus(_ controller: UVCController, includeTinyReadback: Bool = true) {
-    print("tinyGestureControlPath=selector2-sdk-v3-gesture-parameters")
+    print("tinyGestureControlPath=selector2-sdk-v3-gesture-commands")
     guard includeTinyReadback else {
       print("tinyGestureReadback=skipped-after-write")
       print("tinyGestureAIStatusReadback=skipped-after-write")
@@ -94,7 +94,7 @@ extension CommandLineTool {
 
     do {
       let state = try controller.readOBSBOTTinyGestureParameterState()
-      print("tinyGestureReadback=sdk-gesture-parameters")
+      print("tinyGestureReadback=sdk-core-gesture-parameters")
       print("gestureMaster=\(onOff(state.master))")
       print("gestureTargetSelection=\(onOff(state.targetSelection))")
       print("gestureZoom=\(onOff(state.zoom))")

@@ -187,7 +187,7 @@ public enum OBSBOTRemoteProtocol {
       route: 0x03,
       v3CommandSet: 0x03,
       v3CommandID: 0x0003,
-      payload: [0x7D, 0x00, 0x00, 0x00, 0x00, 0x00],
+      payload: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
       sequence: sequence
     )
   }
@@ -204,6 +204,8 @@ public enum OBSBOTRemoteProtocol {
   }
 
   public static func makeRebootPacket(sequence: UInt16) -> [UInt8] {
+    // SDK cameraSetPowerCtrlActionR uses legacy 0x01/0x008B, which converts to
+    // the same V3 command as run/sleep with payload value 2.
     makeRMCommandPacket(
       v3CommandID: 0x0283,
       payload: makeUInt32Payload(2),

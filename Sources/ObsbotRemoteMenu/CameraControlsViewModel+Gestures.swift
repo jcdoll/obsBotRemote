@@ -3,11 +3,26 @@ import ObsbotRemoteCore
 
 extension CameraControlsViewModel {
   func setHandGestureControls(_ enabled: Bool) {
+    guard !handGestureControlsApplying else {
+      return
+    }
     cameraControlsLogger.notice(
       "Hand gestures requested \(enabled ? "on" : "off", privacy: .public)")
     invalidateReadback()
+    let previousValue = lastConfirmedHandGesturesEnabled
+    handGesturesEnabled = enabled
+    handGestureControlsApplying = true
     runCommand(
-      refreshAfterSuccess: true,
+      refreshAfterSuccess: false,
+      onSuccess: { [weak self] in
+        self?.lastConfirmedHandGesturesEnabled = enabled
+      },
+      onFailure: { [weak self] in
+        self?.handGesturesEnabled = previousValue
+      },
+      onComplete: { [weak self] in
+        self?.handGestureControlsApplying = false
+      },
       { completion in
         coordinator.setHandGestureControls(enabled: enabled, completion: completion)
       })
@@ -18,6 +33,7 @@ extension CameraControlsViewModel {
       return
     }
     handGesturesEnabled = settings.master
+    lastConfirmedHandGesturesEnabled = settings.master
   }
 
 }

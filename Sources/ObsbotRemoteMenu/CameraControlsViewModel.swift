@@ -15,6 +15,8 @@ final class CameraControlsViewModel: ObservableObject {
   @Published var faceAutoFocusEnabled = false
   @Published var fieldOfViewChoice = CameraFieldOfViewChoice.medium
   @Published var handGesturesEnabled = false
+  @Published var handGestureControlsApplying = false
+  var lastConfirmedHandGesturesEnabled = false
   @Published var brightnessValue = Double(OBSBOTRemoteProtocol.imageAdjustmentRange.defaultValue)
   @Published var brightnessRange = 0.0...100.0
   @Published var brightnessAvailable = true

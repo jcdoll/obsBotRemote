@@ -92,15 +92,8 @@ extension CameraControlCoordinator {
         enabled: enabled,
         startingSequence: 1
       ).count
-      let action = enabled ? "Enabled" : "Disabled"
-      do {
-        _ = try coordinator.controller.verifyOBSBOTHandGestureControls(enabled: enabled)
-        return
-          "\(action) hand gestures with \(selector2Writes) SDK gesture writes and verified readback."
-      } catch {
-        return
-          "\(action) hand gesture writes sent with \(selector2Writes) SDK gesture writes; readback unavailable."
-      }
+      let state = enabled ? "on" : "off"
+      return "Requested hand gestures \(state) with \(selector2Writes) SDK gesture writes."
     }
   }
 

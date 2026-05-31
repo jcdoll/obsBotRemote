@@ -139,6 +139,21 @@ expect(
 )
 expect(sleepPacket.dropFirst(20).allSatisfy { $0 == 0 }, "OBSBOT packet padding")
 
+let runPacket = expectNoThrow("build OBSBOT run packet") {
+  try OBSBOTRemoteProtocol.makeDevRunStatusPacket(.run, sequence: 0x0016)
+}
+expect(runPacket.count == 60, "OBSBOT run packet length")
+expect(
+  Array(runPacket.prefix(20))
+    == [
+      0xAA, 0x25, 0x16, 0x00, 0x0C, 0x00, 0xA8, 0xF7,
+      0x0A, 0x02, 0xC2, 0xA0, 0x04, 0x00, 0xBE, 0x07,
+      0x00, 0x00, 0x00, 0x00,
+    ].map(UInt8.init),
+  "OBSBOT run packet bytes"
+)
+expect(runPacket.dropFirst(20).allSatisfy { $0 == 0 }, "OBSBOT run packet padding")
+
 let gimbalStopPacket = OBSBOTRemoteProtocol.makeGimbalStopPacket(sequence: 0x1234)
 expect(gimbalStopPacket.count == 60, "OBSBOT gimbal stop packet length")
 expect(
@@ -157,8 +172,8 @@ expect(
   Array(tiny3GimbalResetPacket.prefix(22))
     == [
       0xAA, 0x25, 0x34, 0x12, 0x0C, 0x00, 0x8C, 0xDF,
-      0x0A, 0x03, 0xC3, 0x00, 0x06, 0x00, 0x65, 0xCA,
-      0x7D, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x0A, 0x03, 0xC3, 0x00, 0x06, 0x00, 0x6F, 0xE7,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     ].map(UInt8.init),
   "OBSBOT Tiny 3 gimbal reset packet bytes"
 )
@@ -517,13 +532,16 @@ let gestureEnableAllPlan = OBSBOTTinyGestureCommandPlan.all(
 )
 expect(gestureEnableAllPlan.count == 16, "OBSBOT gesture enable-all write count")
 expect(
-  gestureEnableAllPlan.first?.name == "tiny.parameter.master=on",
-  "OBSBOT gesture enable-all starts with gesture master")
+  gestureEnableAllPlan.first?.name == "tiny.control.targetSelection=on",
+  "OBSBOT gesture enable-all starts with individual gesture controls")
 expect(
-  gestureEnableAllPlan[1].name == "tiny.handTrackGimbal=on"
-    && gestureEnableAllPlan[2].name == "tiny.track.panEnabled=on"
-    && gestureEnableAllPlan[3].name == "tiny.track.pitchEnabled=on",
+  gestureEnableAllPlan[5].name == "tiny.handTrackGimbal=on"
+    && gestureEnableAllPlan[6].name == "tiny.track.panEnabled=on"
+    && gestureEnableAllPlan[7].name == "tiny.track.pitchEnabled=on",
   "OBSBOT gesture enable-all enables hand tracking")
+expect(
+  gestureEnableAllPlan.last?.name == "tiny.parameter.master=on",
+  "OBSBOT gesture enable-all ends with gesture master")
 expect(
   gestureEnableAllPlan.contains { $0.name == "tiny.parameter.targetSelection=on" }
     && gestureEnableAllPlan.contains { $0.name == "tiny.control.targetSelection=on" },

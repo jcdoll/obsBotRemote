@@ -166,7 +166,9 @@ public enum OBSBOTTinyGestureCommandPlan {
   ) -> [OBSBOTTinyGestureCommand] {
     var commands: [OBSBOTTinyGestureCommand] = []
     if enabled {
-      commands.append(parameter(.master, enabled: true, sequence: nextSequence()))
+      for control in OBSBOTTinyGestureControl.allCases {
+        commands.append(self.control(control, enabled: true, sequence: nextSequence()))
+      }
       commands.append(handTrackGimbal(enabled: true, sequence: nextSequence()))
       for axis in OBSBOTTinyGestureTrackParameter.gimbalAxes {
         commands.append(trackParameter(axis, enabled: true, sequence: nextSequence()))
@@ -174,9 +176,7 @@ public enum OBSBOTTinyGestureCommandPlan {
       for parameter in OBSBOTTinyGestureParameter.allBooleanParameters where parameter != .master {
         commands.append(self.parameter(parameter, enabled: true, sequence: nextSequence()))
       }
-      for control in OBSBOTTinyGestureControl.allCases {
-        commands.append(self.control(control, enabled: true, sequence: nextSequence()))
-      }
+      commands.append(parameter(.master, enabled: true, sequence: nextSequence()))
     } else {
       for control in OBSBOTTinyGestureControl.allCases {
         commands.append(self.control(control, enabled: false, sequence: nextSequence()))

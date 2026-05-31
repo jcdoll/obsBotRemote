@@ -13,20 +13,23 @@ struct CameraControlsWindowView: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 14) {
-      topControls
-      Divider()
-      gimbalAndSteps
-      Divider()
-      zoomControls
-      Divider()
-      aiModeControls
-      Divider()
-      advancedSettingsControls
-      Divider()
-      imageControls
+    ScrollView {
+      VStack(alignment: .leading, spacing: 14) {
+        topControls
+        Divider()
+        gimbalAndSteps
+        Divider()
+        zoomControls
+        Divider()
+        aiModeControls
+        Divider()
+        advancedSettingsControls
+        Divider()
+        imageControls
+      }
+      .padding(18)
+      .frame(maxWidth: .infinity, alignment: .topLeading)
     }
-    .padding(18)
     .frame(minWidth: 560, idealWidth: 620, minHeight: 800, idealHeight: 900)
     .onAppear {
       viewModel.loadInitialState()
@@ -228,6 +231,7 @@ struct CameraControlsWindowView: View {
           get: { viewModel.handGesturesEnabled },
           set: { viewModel.setHandGestureControls($0) })
       )
+      .disabled(viewModel.handGestureControlsApplying)
       Picker(
         "Field of View",
         selection: Binding(
