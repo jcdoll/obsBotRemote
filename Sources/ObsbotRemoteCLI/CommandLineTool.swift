@@ -114,7 +114,6 @@ struct CommandLineTool {
         --fov <wide|medium|narrow>     Set OBSBOT field of view.
         --mode <mode>                  AI mode: off, track, upper, close-up, hand, desk.
         --gesture-all <on|off>         Set all known Tiny hand gesture switches.
-        --hand-gestures <on|off>       Alias for --gesture-all.
         --gesture-master <on|off>      Set Tiny global hand gesture recognition.
         --gesture-target <on|off>      Set Tiny target-selection gesture.
         --gesture-zoom <on|off>        Set Tiny zoom gesture.

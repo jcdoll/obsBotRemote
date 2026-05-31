@@ -13,23 +13,20 @@ struct CameraControlsWindowView: View {
   }
 
   var body: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: 14) {
-        topControls
-        Divider()
-        gimbalAndSteps
-        Divider()
-        zoomControls
-        Divider()
-        aiModeControls
-        Divider()
-        advancedSettingsControls
-        Divider()
-        imageControls
-      }
-      .padding(18)
-      .frame(maxWidth: .infinity, alignment: .topLeading)
+    VStack(alignment: .leading, spacing: 14) {
+      topControls
+      Divider()
+      gimbalAndSteps
+      Divider()
+      zoomControls
+      Divider()
+      aiModeControls
+      Divider()
+      advancedSettingsControls
+      Divider()
+      imageControls
     }
+    .padding(18)
     .frame(minWidth: 560, idealWidth: 620, minHeight: 800, idealHeight: 900)
     .onAppear {
       viewModel.loadInitialState()
