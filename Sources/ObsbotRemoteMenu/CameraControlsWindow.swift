@@ -26,8 +26,8 @@ struct CameraControlsWindowView: View {
       Divider()
       imageControls
     }
-    .padding(16)
-    .frame(width: 520, alignment: .topLeading)
+    .padding(14)
+    .frame(width: 480, alignment: .topLeading)
     .onAppear {
       viewModel.loadInitialState()
     }
@@ -42,7 +42,7 @@ struct CameraControlsWindowView: View {
   }
 
   private var topControls: some View {
-    HStack(alignment: .center, spacing: 14) {
+    HStack(alignment: .center, spacing: 8) {
       Button {
         viewModel.togglePower()
       } label: {
@@ -50,10 +50,10 @@ struct CameraControlsWindowView: View {
       }
       .buttonStyle(.bordered)
 
-      HStack(spacing: 12) {
-        Text(viewModel.panText)
-        Text(viewModel.tiltText)
-        Text(viewModel.zoomText)
+      HStack(spacing: 8) {
+        statusText(viewModel.panText, width: 68)
+        statusText(viewModel.tiltText, width: 78)
+        statusText(viewModel.zoomText, width: 46)
       }
       .font(.caption)
       .monospacedDigit()
@@ -72,7 +72,7 @@ struct CameraControlsWindowView: View {
   }
 
   private var gimbalAndSteps: some View {
-    HStack(alignment: .top, spacing: 20) {
+    HStack(alignment: .top, spacing: 18) {
       VStack(alignment: .leading, spacing: 10) {
         Text("Gimbal")
           .font(.subheadline)
@@ -198,7 +198,7 @@ struct CameraControlsWindowView: View {
       }
       .pickerStyle(.segmented)
       .labelsHidden()
-      .frame(width: 430, alignment: .leading)
+      .frame(width: 400, alignment: .leading)
     }
   }
 
@@ -241,7 +241,7 @@ struct CameraControlsWindowView: View {
         }
       }
       .pickerStyle(.segmented)
-      .frame(width: 360, alignment: .leading)
+      .frame(width: 320, alignment: .leading)
     }
   }
 
@@ -326,7 +326,7 @@ struct CameraControlsWindowView: View {
         .monospacedDigit()
         .foregroundStyle(.secondary)
     }
-    .frame(width: 138)
+    .frame(width: 116)
   }
 
   private func imageSlider(
@@ -338,7 +338,7 @@ struct CameraControlsWindowView: View {
   ) -> some View {
     HStack(spacing: 10) {
       Text(title)
-        .frame(width: 105, alignment: .leading)
+        .frame(width: 98, alignment: .leading)
       Slider(
         value: value,
         in: range,
@@ -352,8 +352,15 @@ struct CameraControlsWindowView: View {
       Text("\(Int(value.wrappedValue.rounded()))")
         .monospacedDigit()
         .foregroundStyle(.secondary)
-        .frame(width: 48, alignment: .trailing)
+        .frame(width: 44, alignment: .trailing)
     }
+  }
+
+  private func statusText(_ text: String, width: CGFloat) -> some View {
+    Text(text)
+      .lineLimit(1)
+      .minimumScaleFactor(0.85)
+      .frame(width: width, alignment: .leading)
   }
 
 }
