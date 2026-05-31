@@ -50,6 +50,7 @@ swift run obsbot-remote camera-power status
 swift run obsbot-remote camera-power
 swift run obsbot-remote camera-power on
 swift run obsbot-remote camera-power off
+swift run obsbot-remote camera-reset
 swift run obsbot-remote camera-xu-dump
 swift run obsbot-remote camera-xu-get --unit 2 --selector 6 --length 60
 swift run obsbot-remote uvc-controls
@@ -57,6 +58,38 @@ scripts/build-menu-app.sh
 ```
 
 Use `swift build --configuration release` before packaging or Homebrew work.
+
+## OBSBOT SDK Reference
+
+- Official SDK page: <https://www.obsbot.com/sdk>. For Tiny-series webcam work, start from the SDK for OBSBOT Center. The page lists Tiny 3 as a compatible product and says the SDK supports macOS, Windows, and Linux.
+- The SDK page may require OBSBOT sign-in or an SDK application. If the file is sent by email or downloaded by the browser, stage that exact zip locally before analysis. Prior work used an archive named like `libdev_v2_1_0_8.zip`; do not assume that remains current.
+- Before adding or changing OBSBOT vendor controls, inspect the SDK headers and library behavior first. Do not infer selector-2 payloads, command ids, readback shapes, or enable/disable semantics from UI labels alone.
+- Treat SDK internal command ids and wire command ids as separate concepts. Confirm the Tiny-series protocol version, command-set mapping, route bytes, packet flags, payload shape, and readback framing against the SDK before changing `OBSBOTProtocol` or gesture/image controls.
+- Avoid broad AI shutdown APIs as substitutes for a specific feature toggle unless the SDK proves that is the intended control. For example, do not use a global AI enable/disable call just to disable hand gestures.
+
+To grab and unpack the SDK for local inspection:
+
+```bash
+SDK_WORKDIR=/tmp/obsbot-sdk-read
+mkdir -p "$SDK_WORKDIR"
+curl -fL "$OBSBOT_SDK_URL" -o "$SDK_WORKDIR/obsbot-sdk.zip"
+unzip -q "$SDK_WORKDIR/obsbot-sdk.zip" -d "$SDK_WORKDIR"
+find "$SDK_WORKDIR" -type f \( -name '*.h' -o -name '*.hpp' -o -name '*.dylib' -o -name '*.so' -o -name '*.dll' \)
+```
+
+If the SDK was downloaded through the browser or received by email, replace the `curl` command with:
+
+```bash
+cp "$HOME/Downloads/<sdk-archive>.zip" "$SDK_WORKDIR/obsbot-sdk.zip"
+```
+
+Useful first-pass SDK inspection commands:
+
+```bash
+find "$SDK_WORKDIR" -type f \( -name '*.h' -o -name '*.hpp' \) -print0 | xargs -0 rg -n "Gesture|gesture|Ai|AI|UVC|DevGesture"
+find "$SDK_WORKDIR" -type f -name '*.dylib' -print0 | xargs -0 nm -gU | rg "Gesture|gesture|Ai|AI|Track|track"
+find "$SDK_WORKDIR" -type f -name '*.dylib' -print0 | xargs -0 strings | rg "Gesture|gesture|Track|track|selector|protocol"
+```
 
 ## Design Notes
 

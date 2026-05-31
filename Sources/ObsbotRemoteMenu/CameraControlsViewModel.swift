@@ -10,7 +10,27 @@ final class CameraControlsViewModel: ObservableObject {
   @Published var zoomValue = 0.0
   @Published var zoomRange = 0.0...100.0
   @Published var aiModeChoice = CameraAIModeChoice.off
-  @Published private var runStatus: OBSBOTRunStatus?
+  @Published var hdrEnabled = false
+  @Published var faceAutoExposureEnabled = false
+  @Published var faceAutoFocusEnabled = false
+  @Published var fieldOfViewChoice = CameraFieldOfViewChoice.medium
+  @Published var handGesturesEnabled = false
+  @Published var brightnessValue = Double(OBSBOTRemoteProtocol.imageAdjustmentRange.defaultValue)
+  @Published var brightnessRange = 0.0...100.0
+  @Published var brightnessAvailable = true
+  @Published var contrastValue = Double(OBSBOTRemoteProtocol.imageAdjustmentRange.defaultValue)
+  @Published var contrastRange = 0.0...100.0
+  @Published var contrastAvailable = true
+  @Published var saturationValue = Double(OBSBOTRemoteProtocol.imageAdjustmentRange.defaultValue)
+  @Published var saturationRange = 0.0...100.0
+  @Published var saturationAvailable = true
+  @Published var whiteBalanceValue = Double(
+    OBSBOTRemoteProtocol.whiteBalanceKelvinRange.defaultValue)
+  @Published var whiteBalanceRange = 2_000.0...10_000.0
+  @Published var whiteBalanceAvailable = true
+  @Published var whiteBalanceAuto = true
+  @Published var whiteBalanceAutoAvailable = true
+  @Published var runStatus: OBSBOTRunStatus?
   @Published var panTiltStep: Int {
     didSet {
       coordinator.updatePanTiltStep(Int32(panTiltStep))
@@ -22,9 +42,9 @@ final class CameraControlsViewModel: ObservableObject {
     }
   }
 
-  private let coordinator: CameraControlCoordinator
-  private let log: @MainActor (String) -> Void
-  private var readbackGeneration = 0
+  let coordinator: CameraControlCoordinator
+  let log: @MainActor (String) -> Void
+  var readbackGeneration = 0
   private var panValue: Int32 = 0
   private var tiltValue: Int32 = 0
 
@@ -145,6 +165,7 @@ final class CameraControlsViewModel: ObservableObject {
     aiModeChoice = choice
     aiModeText = choice.title
     runCommand(
+      refreshAfterSuccess: true,
       { completion in
         coordinator.setAIMode(choice.mode, completion: completion)
       }
@@ -156,21 +177,104 @@ final class CameraControlsViewModel: ObservableObject {
     zoomText = "Zoom \(Int(value.rounded()))"
   }
 
-  private func runCommand(
-    _ command: (
-      @escaping @MainActor @Sendable (CameraControlCommandResult<String>) -> Void
-    ) -> Void
-  ) {
-    command { [weak self] result in
-      guard let self else {
-        return
+  func setHDR(_ enabled: Bool) {
+    invalidateReadback()
+    hdrEnabled = enabled
+    runCommand { completion in
+      coordinator.setHDR(enabled: enabled, completion: completion)
+    }
+  }
+
+  func setFaceAutoExposure(_ enabled: Bool) {
+    invalidateReadback()
+    faceAutoExposureEnabled = enabled
+    runCommand { completion in
+      coordinator.setFaceAutoExposure(enabled: enabled, completion: completion)
+    }
+  }
+
+  func setFaceAutoFocus(_ enabled: Bool) {
+    invalidateReadback()
+    faceAutoFocusEnabled = enabled
+    runCommand { completion in
+      coordinator.setFaceAutoFocus(enabled: enabled, completion: completion)
+    }
+  }
+
+  func setFieldOfView(_ choice: CameraFieldOfViewChoice) {
+    invalidateReadback()
+    fieldOfViewChoice = choice
+    runCommand { completion in
+      coordinator.setFieldOfView(choice.fieldOfView, completion: completion)
+    }
+  }
+
+  func setDisplayedBrightness(_ value: Double) {
+    brightnessValue = value
+  }
+
+  func setBrightnessFromSlider() {
+    setImageAdjustment(.brightness, value: Int(brightnessValue.rounded()))
+  }
+
+  func setDisplayedContrast(_ value: Double) {
+    contrastValue = value
+  }
+
+  func setContrastFromSlider() {
+    setImageAdjustment(.contrast, value: Int(contrastValue.rounded()))
+  }
+
+  func setDisplayedSaturation(_ value: Double) {
+    saturationValue = value
+  }
+
+  func setSaturationFromSlider() {
+    setImageAdjustment(.saturation, value: Int(saturationValue.rounded()))
+  }
+
+  func setDisplayedWhiteBalance(_ value: Double) {
+    whiteBalanceValue = value
+  }
+
+  func setWhiteBalanceFromSlider() {
+    invalidateReadback()
+    whiteBalanceAuto = false
+    runCommand { completion in
+      coordinator.setWhiteBalanceManual(
+        kelvin: Int(whiteBalanceValue.rounded()),
+        completion: completion)
+    }
+  }
+
+  func setWhiteBalanceAuto(_ enabled: Bool) {
+    invalidateReadback()
+    whiteBalanceAuto = enabled
+    if enabled {
+      runCommand(coordinator.setWhiteBalanceAuto)
+    } else {
+      runCommand { completion in
+        coordinator.setWhiteBalanceManual(
+          kelvin: Int(whiteBalanceValue.rounded()),
+          completion: completion)
       }
-      switch result {
-      case .success(let message):
-        self.log(message)
-      case .failure(let message):
-        self.log("Camera error: \(message)")
-      }
+    }
+  }
+
+  func resetImageControls() {
+    invalidateReadback()
+    brightnessValue = Double(OBSBOTRemoteProtocol.imageAdjustmentRange.defaultValue)
+    contrastValue = Double(OBSBOTRemoteProtocol.imageAdjustmentRange.defaultValue)
+    saturationValue = Double(OBSBOTRemoteProtocol.imageAdjustmentRange.defaultValue)
+    whiteBalanceValue = Double(OBSBOTRemoteProtocol.whiteBalanceKelvinRange.defaultValue)
+    whiteBalanceAuto = true
+    runCommand(coordinator.resetImageControls)
+  }
+
+  private func setImageAdjustment(_ adjustment: OBSBOTImageAdjustment, value: Int) {
+    invalidateReadback()
+    runCommand { completion in
+      coordinator.setImageAdjustment(adjustment, value: value, completion: completion)
     }
   }
 
@@ -218,10 +322,6 @@ final class CameraControlsViewModel: ObservableObject {
     tiltText = "Tilt \(tilt)"
   }
 
-  private func invalidateReadback() {
-    readbackGeneration += 1
-  }
-
   private func apply(_ snapshot: CameraControlSnapshot) {
     runStatus = snapshot.runStatus
     applyDisplayedPanTilt(pan: snapshot.panTilt.pan, tilt: snapshot.panTilt.tilt)
@@ -231,6 +331,40 @@ final class CameraControlsViewModel: ObservableObject {
     aiModeText = snapshot.aiMode.userFacingName
     if let choice = CameraAIModeChoice(mode: snapshot.aiMode) {
       aiModeChoice = choice
+    }
+    apply(snapshot.advancedSettings)
+    if let imageControls = snapshot.imageControls {
+      apply(imageControls)
+    }
+  }
+
+  private func apply(_ snapshot: CameraAdvancedSettingsSnapshot) {
+    if let obsbot = snapshot.obsbot {
+      hdrEnabled = obsbot.hdrEnabled
+      faceAutoExposureEnabled = obsbot.faceAutoExposureEnabled
+      faceAutoFocusEnabled = obsbot.faceAutoFocusEnabled
+      if let choice = CameraFieldOfViewChoice(fieldOfView: obsbot.fieldOfView) {
+        fieldOfViewChoice = choice
+      }
+    }
+    applyTinyGestureSettings(snapshot.tinyGesture)
+  }
+
+  private func apply(_ snapshot: CameraImageControlsSnapshot) {
+    if let brightness = snapshot.brightness {
+      brightnessValue = Double(brightness)
+    }
+    if let contrast = snapshot.contrast {
+      contrastValue = Double(contrast)
+    }
+    if let saturation = snapshot.saturation {
+      saturationValue = Double(saturation)
+    }
+    if let whiteBalanceKelvin = snapshot.whiteBalanceKelvin {
+      whiteBalanceValue = Double(whiteBalanceKelvin)
+    }
+    if let whiteBalanceAuto = snapshot.whiteBalanceAuto {
+      self.whiteBalanceAuto = whiteBalanceAuto
     }
   }
 }

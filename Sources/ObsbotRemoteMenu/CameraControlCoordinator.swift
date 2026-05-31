@@ -23,6 +23,8 @@ struct CameraControlSnapshot: Sendable {
   var zoom: Int
   var zoomRange: UVCZoomRange
   var panTilt: CameraControlPanTilt
+  var imageControls: CameraImageControlsSnapshot?
+  var advancedSettings: CameraAdvancedSettingsSnapshot
 }
 
 enum CameraControlDirection: Sendable {
@@ -40,7 +42,7 @@ enum CameraControlCommandResult<Value: Sendable>: Sendable {
 final class CameraControlCoordinator: @unchecked Sendable {
   let commandQueue = DispatchQueue(label: "OBSBOT Remote Camera Commands")
 
-  private let controller = UVCController()
+  let controller = UVCController()
   private let settingsLock = NSLock()
   private var settings = CameraControlSettings.defaultValue
   private var cachedZoomRange: UVCZoomRange?
@@ -90,7 +92,9 @@ final class CameraControlCoordinator: @unchecked Sendable {
         aiMode: try coordinator.controller.readOBSBOTAIMode(),
         zoom: try coordinator.controller.readZoom(),
         zoomRange: zoomRange,
-        panTilt: CameraControlPanTilt(pan: panTilt.pan, tilt: panTilt.tilt)
+        panTilt: CameraControlPanTilt(pan: panTilt.pan, tilt: panTilt.tilt),
+        imageControls: coordinator.readImageControlsOnCommandQueue(),
+        advancedSettings: coordinator.readAdvancedSettingsOnCommandQueue()
       )
     }
   }
@@ -186,7 +190,9 @@ final class CameraControlCoordinator: @unchecked Sendable {
   ) {
     enqueue(completion: completion) { coordinator in
       try coordinator.controller.setOBSBOTAIMode(mode)
-      return "Set AI mode to \(mode.userFacingName)."
+      Thread.sleep(forTimeInterval: 0.5)
+      let current = try coordinator.controller.readOBSBOTAIMode()
+      return "Requested AI mode \(mode.userFacingName); camera reports \(current.userFacingName)."
     }
   }
 
@@ -250,7 +256,7 @@ final class CameraControlCoordinator: @unchecked Sendable {
     }
   }
 
-  private func enqueue<Value: Sendable>(
+  func enqueue<Value: Sendable>(
     completion: @escaping @MainActor @Sendable (CameraControlCommandResult<Value>) -> Void,
     operation: @escaping @Sendable (CameraControlCoordinator) throws -> Value
   ) {

@@ -136,23 +136,106 @@ public enum OBSBOTRemoteProtocol {
       throw UVCRequestError.unsupportedControl("OBSBOT run-status target \(status)")
     }
 
+    return makeRMCommandPacket(
+      v3CommandID: 0x0283,
+      payload: makeUInt32Payload(payloadValue),
+      sequence: sequence
+    )
+  }
+
+  public static func makeFaceAutoFocusPacket(
+    enabled: Bool,
+    sequence: UInt16
+  ) -> [UInt8] {
+    makeRMCommandPacket(
+      v3CommandID: 0x00D8,
+      payload: makeUInt32Payload(enabled ? 1 : 0),
+      sequence: sequence
+    )
+  }
+
+  public static func makeRMCommandPacket(
+    v3CommandSet: UInt8 = 0x02,
+    v3CommandID: UInt16,
+    payload: [UInt8],
+    sequence: UInt16
+  ) -> [UInt8] {
+    makeV3CommandPacket(
+      flag: 0x25,
+      route: 0x02,
+      v3CommandSet: v3CommandSet,
+      v3CommandID: v3CommandID,
+      payload: payload,
+      sequence: sequence
+    )
+  }
+
+  public static func makeGimbalStopPacket(sequence: UInt16) -> [UInt8] {
+    makeV3CommandPacket(
+      flag: 0x05,
+      route: 0x04,
+      v3CommandSet: 0x04,
+      v3CommandID: 0x019C,
+      payload: [],
+      sequence: sequence
+    )
+  }
+
+  public static func makeTiny3GimbalResetPacket(sequence: UInt16) -> [UInt8] {
+    makeV3CommandPacket(
+      flag: 0x25,
+      route: 0x03,
+      v3CommandSet: 0x03,
+      v3CommandID: 0x0003,
+      payload: [0x7D, 0x00, 0x00, 0x00, 0x00, 0x00],
+      sequence: sequence
+    )
+  }
+
+  public static func makeFactoryRestorePacket(sequence: UInt16) -> [UInt8] {
+    makeV3CommandPacket(
+      flag: 0x25,
+      route: 0x02,
+      v3CommandSet: 0x02,
+      v3CommandID: 0x02A0,
+      payload: [0x01],
+      sequence: sequence
+    )
+  }
+
+  public static func makeRebootPacket(sequence: UInt16) -> [UInt8] {
+    makeRMCommandPacket(
+      v3CommandID: 0x0283,
+      payload: makeUInt32Payload(2),
+      sequence: sequence
+    )
+  }
+
+  static func makeV3CommandPacket(
+    flag: UInt8,
+    route: UInt8,
+    v3CommandSet: UInt8,
+    v3CommandID: UInt16,
+    payload: [UInt8],
+    sequence: UInt16
+  ) -> [UInt8] {
+    precondition(v3CommandSet <= 0x3F)
+    precondition(payload.count <= uvcPacketLength - 16)
+
     var packet = [UInt8](repeating: 0, count: uvcPacketLength)
     packet[0] = 0xAA
-    packet[1] = 0x25
+    packet[1] = flag
     packet[2] = UInt8(sequence & 0xFF)
     packet[3] = UInt8((sequence >> 8) & 0xFF)
     packet[4] = 0x0C
     packet[5] = 0x00
     packet[8] = 0x0A
-    packet[9] = 0x02
-    packet[10] = 0xC2
-    packet[11] = 0xA0
-    packet[12] = 0x04
-    packet[13] = 0x00
-    packet[16] = UInt8(payloadValue & 0xFF)
-    packet[17] = UInt8((payloadValue >> 8) & 0xFF)
-    packet[18] = UInt8((payloadValue >> 16) & 0xFF)
-    packet[19] = UInt8((payloadValue >> 24) & 0xFF)
+    packet[9] = route
+    packet[10] = v3CommandSet | UInt8((v3CommandID & 0x0003) << 6)
+    packet[11] = UInt8((v3CommandID >> 2) & 0x00FF)
+    packet[12] = UInt8(payload.count & 0xFF)
+    packet[13] = UInt8((payload.count >> 8) & 0xFF)
+    packet.replaceSubrange(16..<(16 + payload.count), with: payload)
 
     let headerCRC = crc16(Array(packet[0..<12]))
     packet[6] = UInt8(headerCRC & 0xFF)
@@ -164,6 +247,72 @@ public enum OBSBOTRemoteProtocol {
     packet[15] = UInt8((bodyCRC >> 8) & 0xFF)
 
     return packet
+  }
+
+  public static func makeSDKRMCommandPacket(
+    commandSet: UInt8,
+    commandID: UInt16,
+    payload: [UInt8],
+    sequence: UInt16
+  ) -> [UInt8] {
+    let wireCommand = sdkV3WireCommand(commandSet: commandSet, commandID: commandID)
+    return makeV3CommandPacket(
+      flag: payload.isEmpty ? 0x01 : 0x21,
+      route: 0x04,
+      v3CommandSet: wireCommand.set,
+      v3CommandID: wireCommand.id,
+      payload: payload,
+      sequence: sequence
+    )
+  }
+
+  static func sdkV3WireCommand(
+    commandSet: UInt8,
+    commandID: UInt16
+  ) -> (set: UInt8, id: UInt16) {
+    switch (commandSet, commandID) {
+    case (0x01, 0x009A):
+      (0x02, 0x02B2)
+    case (0x01, 0x00A3):
+      (0x02, 0x02BA)
+    case (0x03, 0x0056):
+      (0x04, 0x009B)
+    case (0x03, 0x0013):
+      (0x04, 0x0004)
+    case (0x03, 0x0057):
+      (0x04, 0x00C3)
+    case (0x03, 0x0058):
+      (0x04, 0x00C5)
+    case (0x03, 0x0059):
+      (0x04, 0x00C7)
+    case (0x03, 0x005B):
+      (0x04, 0x00CD)
+    case (0x03, 0x005C):
+      (0x04, 0x00CF)
+    case (0x03, 0x0061):
+      (0x04, 0x0009)
+    case (0x03, 0x007A):
+      (0x04, 0x0081)
+    case (0x03, 0x007B):
+      (0x04, 0x0082)
+    case (0x03, 0x007C):
+      (0x04, 0x00D1)
+    case (0x03, 0x007D):
+      (0x04, 0x00D2)
+    default:
+      preconditionFailure(
+        "Unsupported SDK RM command \(formatHex(UInt32(commandSet), width: 2))/\(formatHex(UInt32(commandID), width: 4))"
+      )
+    }
+  }
+
+  static func makeUInt32Payload(_ value: UInt32) -> [UInt8] {
+    [
+      UInt8(value & 0xFF),
+      UInt8((value >> 8) & 0xFF),
+      UInt8((value >> 16) & 0xFF),
+      UInt8((value >> 24) & 0xFF),
+    ]
   }
 
   public static func makeAIModePayload(_ mode: OBSBOTAIMode) throws -> [UInt8] {

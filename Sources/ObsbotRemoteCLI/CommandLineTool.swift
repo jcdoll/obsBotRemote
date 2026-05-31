@@ -34,6 +34,18 @@ struct CommandLineTool {
       try runCameraPanTilt(arguments: rest)
     case "camera-power":
       try runCameraPower(arguments: rest)
+    case "camera-ai":
+      try runCameraAI(arguments: rest)
+    case "camera-image":
+      try runCameraImage(arguments: rest)
+    case "camera-settings":
+      try runCameraSettings(arguments: rest)
+    case "camera-gesture":
+      try runCameraGesture(arguments: rest)
+    case "camera-reset":
+      try runCameraReset(arguments: rest)
+    case "camera-rm-send":
+      try runCameraRMSend(arguments: rest)
     case "camera-xu-get":
       try runCameraXUGet(arguments: rest)
     case "camera-xu-dump":
@@ -61,6 +73,12 @@ struct CommandLineTool {
         camera-zoom [options]          Read or set native UVC zoom-abs.
         camera-pan-tilt [options]      Set native UVC pan-tilt-abs.
         camera-power [status|on|off]   Read or toggle OBSBOT sleep/wake state.
+        camera-ai [status|mode]        Read or set OBSBOT AI mode.
+        camera-image [options]         Show supported ranges or set OBSBOT image controls.
+        camera-settings [options]      Read or set OBSBOT camera settings.
+        camera-gesture [options]       Set OBSBOT hand gestures; readback is best-effort.
+        camera-reset [options]         Factory-reset camera controls and reboot.
+        camera-rm-send [options]       Send one OBSBOT selector-2 RM packet for diagnostics.
         camera-xu-get [options]        Read one UVC extension-unit selector.
         camera-xu-dump [options]       Read advertised UVC extension-unit selectors.
         uvc-controls                   Show native UVC implementation status.
@@ -84,6 +102,33 @@ struct CommandLineTool {
         --selector <id>                Extension selector id for camera-xu-get.
         --length <bytes>               Override GET_CUR read length.
         --max-length <bytes>           Max auto-read length for camera-xu-dump.
+        --reset                        Reset image controls to neutral.
+        --brightness <0-100>           Set OBSBOT brightness.
+        --contrast <0-100>             Set OBSBOT contrast.
+        --saturation <0-100>           Set OBSBOT saturation.
+        --white-balance <kelvin>       Set manual white balance temperature.
+        --white-balance-auto <on|off>  Set OBSBOT white balance auto/manual.
+        --hdr <on|off>                 Set OBSBOT HDR.
+        --face-ae <on|off>             Set OBSBOT face-based auto exposure.
+        --face-af <on|off>             Set OBSBOT face-based auto focus.
+        --fov <wide|medium|narrow>     Set OBSBOT field of view.
+        --mode <mode>                  AI mode: off, track, upper, close-up, hand, desk.
+        --gesture-all <on|off>         Set all known Tiny hand gesture switches.
+        --gesture-master <on|off>      Set Tiny global hand gesture recognition.
+        --gesture-target <on|off>      Set Tiny target-selection gesture.
+        --gesture-zoom <on|off>        Set Tiny zoom gesture.
+        --gesture-dynamic-zoom <on|off> Set Tiny dynamic-zoom gesture.
+        --gesture-dynamic-zoom-direction <on|off> Set Tiny dynamic zoom direction.
+        --gesture-record <on|off>      Set Tiny record gesture.
+        --gesture-auto-frame <on|off>  Set selector-6 auto-frame gesture.
+        --gesture-mode <mode>          Set selector-6 auto-frame mode.
+        --selector6-gesture-zoom <on|off> Set selector-6 zoom gesture.
+        --gesture-zoom-ratio <100-400> Set selector-6 zoom ratio.
+        --no-reboot                    Do not reboot after camera-reset.
+        --dry-run                      Print Tiny selector-2 packets without USB writes.
+        --command-set <id>             V3 command set for camera-rm-send.
+        --command-id <id>              V3 command id for camera-rm-send.
+        --payload "<bytes>"            Hex or decimal byte list for camera-rm-send.
       """
     )
   }

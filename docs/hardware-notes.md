@@ -48,7 +48,19 @@ aiMode=off
 
 Observed OBSBOT run status is stored in extension unit 2 selector 6, byte offset 9. The sleep/wake command is sent through extension unit 2 selector 2 as a 60-byte vendor packet.
 
+Full camera reset is implemented as a long-term recovery path in `camera-reset` and the menu app. The sequence is derived from SDK calls that succeeded on the observed Tiny 3: `aiSetGimbalStop()`, `gimbalRstPosR()`, `cameraSetRestoreFactorySettingsR()`, then `cameraSetPowerCtrlActionR(DevPowerCtrlReboot)`. The corresponding selector-2 packets use SDK-matched route bytes and flags: gimbal stop uses route `0x04`, flag `0x05`, V3 set/id `0x04/0x019C`; Tiny 3 gimbal reset uses route `0x03`, flag `0x25`, V3 set/id `0x03/0x0003`, payload `7D 00 00 00 00 00`; factory restore uses route `0x02`, flag `0x25`, V3 set/id `0x02/0x02A0`, payload `01`; reboot uses route `0x02`, flag `0x25`, V3 set/id `0x02/0x0283`, payload `02 00 00 00`.
+
 Observed Tiny-series AI mode status is stored in extension unit 2 selector 6 at byte offsets 24 and 28. The SDK's `cameraSetAiModeU(mode, subMode)` writes selector 6 with a 60-byte payload beginning `16 02 <mode> <subMode>`. Track, Upper, and Close-up all use `AiWorkModeHuman`, but they use different SDK submodes: Track is `AiSubModeNormal` `(2, 0)`, Upper is `AiSubModeUpperBody` `(2, 1)`, and Close-up is `AiSubModeCloseUp` `(2, 2)`. Current remote mappings also use hand tracking `(3, 0)` and desk mode `(5, 0)`. `AiWorkModeSwitching` `(6, 0)` is a transient status while the camera changes AI mode.
+
+`camera-probe` now prints UVC processing-unit descriptors when the camera advertises them. User-facing image controls present OBSBOT-style `0...100` values with `50` as neutral, then prefer standard UVC processing-unit writes when the camera advertises brightness, contrast, or saturation. The UI maps `50` to the UVC default value, so raw defaults such as `128` or `5912` stay neutral without being exposed as the slider value. It intentionally does not apply UVC current readback on launch because the observed Tiny 3 can report raw/stale maximum values while the live image is still neutral. If standard UVC processing-unit control is unavailable, image adjustments fall back to OBSBOT extension unit 2 selector 2 as 60-byte V3 vendor packets using command ids `0x00A7` for brightness, `0x00B1` for contrast, and `0x00B5` for saturation. White balance similarly prefers standard UVC white-balance temperature and auto controls, then falls back to the OBSBOT white-balance command id `0x0081`; that mapping was derived from the SDK `cameraSetWhiteBalanceR` path and the SDK binary's legacy-to-V3 command table. The current macOS path does not have a confirmed semantic OBSBOT image readback equivalent for the SDK get calls, so `camera-image` reports semantic ranges and only reports current image values when standard UVC processing-unit readback is available.
+
+Reference-derived Tiny-series camera settings are also read from extension unit 2 selector 6: HDR at byte offset 6, face-based auto exposure at byte offset 7, face-based auto focus at byte offset 13, autofocus at byte offset 14, and field of view at byte offset 17. Known write payloads to selector 6 are `01 01 <0|1>` for HDR, `03 01 <0|1>` for face-based auto exposure, and `04 01 <0|1|2>` for wide, medium, or narrow field of view. Face-based auto focus is sent through extension unit 2 selector 2 as a 60-byte V3 vendor packet using camera command `CAM_SET_FACE_FOCUS` mapped to V3 command id `0x00D8`.
+
+The SDK references gesture controls in multiple places. `AiStatus` contains `gesture_target`, `gesture_zoom`, `gesture_dynamic_zoom`, `gesture_record`, `gesture_mirror`, `gesture_snapshot`, `gesture_rolling`, `gesture_zoom_factor`, and `hand_track_type`. The SDK's deprecated `aiSetGestureCtrlR(flag)` still constructs command set `0x03`, command id `0x000D`, with payload `05 <0|1>`. The macOS path sends this legacy global gesture switch in addition to the newer gesture-parameter master switch because observed Tiny 3 firmware still recognizes raised-hand tracking gestures when only the newer flags are disabled. Current SDK individual gesture writes use command set `0x03`: target selection maps to command id `0x0057`, zoom maps to `0x0058`, record maps to `0x0059`, dynamic zoom maps to `0x005B`, and dynamic zoom direction maps to `0x005C`.
+
+The newer SDK path is `aiSetGestureParaR(DevGestureParaType, bool)`, mapped to selector 2 command set `0x03`, command id `0x007C`. It sends a five-byte payload: four little-endian bytes for the parameter type, then one `0|1` byte. Relevant boolean parameter types are `0` global gesture function, `1` target selection, `2` zoom, `3` dynamic zoom, `4` record, `5` snapshot, `6` rolling, and `7` mirror/dynamic zoom direction. The SDK also exposes hand-track-specific controls: `aiSetHandTrackGimbalEnabledR(bool)` maps to command set `0x03`, command id `0x0056`, and `aiSetGestureTrackParaR(DevGestureTrackParaType, bool)` maps to command set `0x03`, command id `0x007A`. The SDK has separate virtual-track controls: `cameraSetVirtualTrackEnabledR(bool)` maps to command set `0x01`, command id `0x00A3`, and `cameraSetVirtualTrackGestureR(DevVirtualTrackGesture)` maps to command set `0x01`, command id `0x009A`; although the gesture API exposes three boolean fields, the SDK serializes them as three little-endian 32-bit values, so the macOS path sends a 12-byte payload. The SDK's `aiSetEnabledR(bool)` is a broader global AI gate; the current branch maps to command set `0x03`, command id `0x0061`, and the legacy branch maps to command set `0x03`, command id `0x000D`, with payload `00 <0|1>`. The macOS "Hand Gestures" switch sends both AI gates, the legacy global gesture switch, virtual-track writes, general gesture and hand-track writes, selector-6 gesture sync, selector-6 AI mode off, and the current global AI gate. `camera-gesture --gesture-all off` disables virtual-track enable and virtual-track gestures first, sends individual disables, sends parameter disables for every known boolean gesture parameter, disables hand-track pan/pitch and hand-track gimbal, sends the parameter master disable, sends the legacy global gesture disable, disables selector-6 auto-frame/zoom, forces AI mode off, writes legacy AI disabled, and writes current AI disabled.
+
+The SDK also has a separate selector-6 path named `cameraSetGestureControlU(bool, unsigned char, bool, unsigned short)`, which writes a 60-byte payload beginning `20 05 <auto-frame 0|1> <mode> <zoom 0|1> <ratio-lo> <ratio-hi>` to extension unit 2 selector 6. Status bytes 38 and 39 expose the corresponding bitfield: bit 0 gesture auto-frame, bits 1-2 auto-frame mode (`0` auto-frame, `1` close-up, `2` half body, `3` full body), bit 3 gesture zoom, and bits 4-15 zoom ratio `100...400`. On the observed Tiny 3 this status can read as disabled while the camera still recognizes one-hand/two-hand Tiny gestures, so it must not be treated as the Tiny gesture trigger readback.
 
 Manual Tiny 3 validation: standard UVC `pan-tilt-abs` moves the physical gimbal; a `36_000` unit step is a visible 10-degree nudge. Live remote control currently uses `18_000` for a smaller nudge.
 
@@ -73,4 +85,41 @@ swift run obsbot-remote camera-power status
 swift run obsbot-remote camera-power
 swift run obsbot-remote camera-power on
 swift run obsbot-remote camera-power off
+```
+
+Full reset recovery:
+
+```bash
+swift run obsbot-remote camera-reset
+swift run obsbot-remote camera-reset --no-reboot
+```
+
+Image and camera-settings lab commands:
+
+```bash
+swift run obsbot-remote camera-image
+swift run obsbot-remote camera-image --reset
+swift run obsbot-remote camera-image --brightness <0-100>
+swift run obsbot-remote camera-image --contrast <0-100> --saturation <0-100>
+swift run obsbot-remote camera-image --white-balance <kelvin>
+swift run obsbot-remote camera-image --white-balance-auto on
+swift run obsbot-remote camera-settings
+swift run obsbot-remote camera-settings --hdr on
+swift run obsbot-remote camera-settings --face-ae on
+swift run obsbot-remote camera-settings --face-af on
+swift run obsbot-remote camera-settings --fov medium
+swift run obsbot-remote camera-ai
+swift run obsbot-remote camera-ai off
+swift run obsbot-remote camera-gesture
+swift run obsbot-remote camera-gesture --gesture-all off --dry-run
+swift run obsbot-remote camera-gesture --gesture-all off
+swift run obsbot-remote camera-gesture --gesture-master off
+swift run obsbot-remote camera-gesture --gesture-target off
+swift run obsbot-remote camera-gesture --gesture-zoom off
+swift run obsbot-remote camera-gesture --gesture-dynamic-zoom off
+swift run obsbot-remote camera-gesture --gesture-dynamic-zoom-direction off
+swift run obsbot-remote camera-gesture --gesture-record off
+swift run obsbot-remote camera-gesture --gesture-auto-frame off --selector6-gesture-zoom off
+swift run obsbot-remote camera-gesture --gesture-mode close-up --gesture-zoom-ratio 200
+swift run obsbot-remote camera-rm-send --command-set 0x03 --command-id 0x007C --payload "00 00 00 00 01"
 ```

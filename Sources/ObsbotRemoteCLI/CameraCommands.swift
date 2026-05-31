@@ -35,6 +35,17 @@ extension CommandLineTool {
       }
     }
 
+    if probe.processingUnits.isEmpty {
+      print("processingUnits=none")
+    } else {
+      for unit in probe.processingUnits {
+        let controls = unit.advertisedControls.map(\.displayName).joined(separator: ", ")
+        print(
+          "processingUnit id=\(unit.unitID) interface=\(unit.interfaceNumber) source=\(unit.sourceID) controls=\(controls.isEmpty ? "none" : controls)"
+        )
+      }
+    }
+
     if probe.extensionUnits.isEmpty {
       print("extensionUnits=none")
     } else {
@@ -57,6 +68,7 @@ extension CommandLineTool {
     if let aiMode = try? controller.readOBSBOTAIMode() {
       print("aiMode=\(aiMode)")
     }
+    printOBSBOTSettingsStatus(controller)
   }
 
   func runCameraZoom(arguments: [String]) throws {
@@ -65,15 +77,16 @@ extension CommandLineTool {
 
     if let delta = options.delta {
       let current = try controller.readZoom()
-      let next = max(0, current + delta)
+      let next = try controller.clampedZoomValue(current + delta)
       try controller.setZoom(next)
       print("zoom \(current) -> \(next)")
       return
     }
 
     if let value = options.value {
-      try controller.setZoom(value)
-      print("zoom set \(value)")
+      let target = try controller.clampedZoomValue(value)
+      try controller.setZoom(target)
+      print("zoom set \(target)")
       return
     }
 
@@ -132,11 +145,21 @@ extension CommandLineTool {
       print("length=\(length)")
     }
 
-    let bytes = try controller.readExtensionUnitCurrent(
-      unitID: unitID,
-      selector: selector,
-      length: options.length
-    )
+    let bytes: [UInt8]
+    if let length = options.length {
+      bytes = try controller.readExtensionUnitCurrentAllowingShortRead(
+        unitID: unitID,
+        selector: selector,
+        length: length
+      )
+      print("requestedLength=\(length)")
+      print("bytesRead=\(bytes.count)")
+    } else {
+      bytes = try controller.readExtensionUnitCurrent(
+        unitID: unitID,
+        selector: selector
+      )
+    }
     print("value=\(hexBytes(bytes))")
   }
 
@@ -188,6 +211,9 @@ extension CommandLineTool {
         - camera-zoom [--value <raw>|--delta <raw>]
         - camera-pan-tilt --pan <raw> --tilt <raw>
         - camera-power [status|on|off]
+        - camera-image [--reset|--brightness 0-100|--contrast 0-100|--saturation 0-100|--white-balance <kelvin>|--white-balance-auto on|off]
+        - camera-settings [--hdr on|off] [--face-ae on|off] [--face-af on|off] [--fov wide|medium|narrow]
+        - camera-reset [--no-reboot]
       """
     )
   }

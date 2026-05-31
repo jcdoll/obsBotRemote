@@ -30,7 +30,7 @@ open -a "OBSBOT Remote"
 
 The app starts remote control immediately. Use the menu bar icon to stop or restart control, open camera controls, open the log, or quit.
 
-Camera Controls opens a normal macOS window for wake/sleep, pan/tilt, center, zoom, and AI mode controls. The pan/tilt and zoom step-size controls are shared with the remote, so changing them in the window changes how far each remote button press moves.
+Camera Controls opens a normal macOS window for wake/sleep, pan/tilt, center, zoom, AI mode, advanced camera settings, image controls, and full camera reset. The pan/tilt and zoom step-size controls are shared with the remote, so changing them in the window changes how far each remote button press moves.
 
 Normal Homebrew users do not need to run key capture. The app ships with the default Smart Remote 2 keymap.
 
@@ -139,6 +139,53 @@ swift run obsbot-remote camera-power status
 swift run obsbot-remote camera-power
 swift run obsbot-remote camera-power on
 swift run obsbot-remote camera-power off
+```
+
+Factory-reset the camera controls, recenter the gimbal, and reboot:
+
+```bash
+swift run obsbot-remote camera-reset
+swift run obsbot-remote camera-reset --no-reboot
+```
+
+Inspect supported image-control ranges or set image controls:
+
+```bash
+swift run obsbot-remote camera-image
+swift run obsbot-remote camera-image --reset
+swift run obsbot-remote camera-image --brightness <0-100>
+swift run obsbot-remote camera-image --contrast <0-100> --saturation <0-100>
+swift run obsbot-remote camera-image --white-balance <kelvin>
+swift run obsbot-remote camera-image --white-balance-auto on
+```
+
+Read or adjust OBSBOT camera settings:
+
+```bash
+swift run obsbot-remote camera-settings
+swift run obsbot-remote camera-settings --hdr on
+swift run obsbot-remote camera-settings --face-ae on
+swift run obsbot-remote camera-settings --face-af on
+swift run obsbot-remote camera-settings --fov medium
+swift run obsbot-remote camera-ai
+swift run obsbot-remote camera-ai off
+```
+
+Set hand gesture controls. `--gesture-all off` disables the SDK legacy global gesture switch, current SDK gesture parameters, virtual-track gesture controls, hand-track pan/pitch, hand-track gimbal movement, selector-6 gesture framing/zoom, and forces AI mode off. Selector-2 readback is best-effort and may report `tinyGestureReadback=unavailable` on observed Tiny hardware:
+
+```bash
+swift run obsbot-remote camera-gesture
+swift run obsbot-remote camera-gesture --gesture-all off --dry-run
+swift run obsbot-remote camera-gesture --gesture-all off
+swift run obsbot-remote camera-gesture --gesture-master off
+swift run obsbot-remote camera-gesture --gesture-target off
+swift run obsbot-remote camera-gesture --gesture-zoom off
+swift run obsbot-remote camera-gesture --gesture-dynamic-zoom off
+swift run obsbot-remote camera-gesture --gesture-dynamic-zoom-direction off
+swift run obsbot-remote camera-gesture --gesture-record off
+swift run obsbot-remote camera-gesture --gesture-auto-frame off --selector6-gesture-zoom off
+swift run obsbot-remote camera-gesture --gesture-mode close-up --gesture-zoom-ratio 200
+swift run obsbot-remote camera-rm-send --command-set 0x03 --command-id 0x007C --payload "00 00 00 00 01"
 ```
 
 Inspect OBSBOT extension-unit controls:

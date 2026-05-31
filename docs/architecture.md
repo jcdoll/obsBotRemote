@@ -63,6 +63,10 @@ The Swift CLI lists USB devices, sniffs HID events, decodes live remote input, p
 - `camera-zoom` reads or writes `zoom-abs`;
 - `camera-pan-tilt` writes `pan-tilt-abs`;
 - `camera-power` reads or toggles OBSBOT run/sleep state through the vendor extension unit;
+- `camera-image` reports supported OBSBOT image ranges and writes image controls;
+- `camera-settings` reads or writes OBSBOT HDR, face AE/AF, and field-of-view settings;
+- `camera-gesture` writes Tiny gesture master/trigger and hand-track controls, attempts best-effort selector-2 readback, and reads/writes selector-6 gesture settings;
+- `camera-reset` sends the SDK-derived gimbal stop, Tiny 3 gimbal reset, factory restore, and reboot sequence;
 - `camera-xu-get` and `camera-xu-dump` inspect UVC extension-unit selectors;
 - `uvc-controls` reports the native UVC implementation status.
 
@@ -72,9 +76,10 @@ CLI implementation is split by concern:
 
 - `main.swift` owns process startup and error handling;
 - `CommandLineTool.swift` owns command dispatch and help text;
-- `CommandOptions.swift` owns argument parsing;
+- `CommandOptions.swift` owns shared argument parsing for the original commands;
+- feature-specific files such as `CameraImageOptions.swift`, `CameraSettingsOptions.swift`, and `CameraGestureOptions.swift` own newer camera command parsing;
 - `HIDCommands.swift`, `CLIRemoteInput.swift`, and `TerminalInput.swift` own CLI remote capture and terminal input;
-- `CameraCommands.swift` owns camera-facing lab commands.
+- `CameraCommands.swift` and feature-specific camera command files own camera-facing lab commands.
 
 ## Lab Bench Strategy
 

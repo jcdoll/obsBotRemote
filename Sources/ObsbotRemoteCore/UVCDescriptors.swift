@@ -4,17 +4,20 @@ public struct UVCProbe: Equatable, Sendable {
   public var configurationLength: Int
   public var videoControlInterfaces: [UVCVideoControlInterface]
   public var cameraTerminals: [UVCCameraTerminal]
+  public var processingUnits: [UVCProcessingUnit]
   public var extensionUnits: [UVCExtensionUnit]
 
   public init(
     configurationLength: Int,
     videoControlInterfaces: [UVCVideoControlInterface],
     cameraTerminals: [UVCCameraTerminal],
+    processingUnits: [UVCProcessingUnit] = [],
     extensionUnits: [UVCExtensionUnit] = []
   ) {
     self.configurationLength = configurationLength
     self.videoControlInterfaces = videoControlInterfaces
     self.cameraTerminals = cameraTerminals
+    self.processingUnits = processingUnits
     self.extensionUnits = extensionUnits
   }
 
@@ -22,6 +25,12 @@ public struct UVCProbe: Equatable, Sendable {
     cameraTerminals.first { terminal in
       terminal.supports(.zoomAbsolute) || terminal.supports(.panTiltAbsolute)
     } ?? cameraTerminals.first
+  }
+
+  public var primaryProcessingUnit: UVCProcessingUnit? {
+    processingUnits.first { unit in
+      UVCProcessingUnitControl.imageControls.contains { unit.supports($0) }
+    } ?? processingUnits.first
   }
 }
 
@@ -142,6 +151,7 @@ public enum UVCDescriptorParser {
   public static func parseConfiguration(_ data: Data) -> UVCProbe {
     var videoControlInterfaces: [UVCVideoControlInterface] = []
     var cameraTerminals: [UVCCameraTerminal] = []
+    var processingUnits: [UVCProcessingUnit] = []
     var extensionUnits: [UVCExtensionUnit] = []
 
     var currentInterfaceNumber: UInt8?
@@ -195,6 +205,31 @@ public enum UVCDescriptorParser {
               )
             )
           }
+        } else if descriptorSubType == 0x05,
+          length >= 10,
+          let interfaceNumber = currentInterfaceNumber
+        {
+          let controlSize = Int(data[offset + 7])
+          let controlsStart = offset + 8
+          let controlsEnd = controlsStart + controlSize
+          guard controlsEnd <= offset + length else {
+            offset += length
+            continue
+          }
+          let processingStringIndex =
+            controlsEnd < offset + length
+            ? data[controlsEnd]
+            : 0
+          processingUnits.append(
+            UVCProcessingUnit(
+              interfaceNumber: interfaceNumber,
+              unitID: data[offset + 3],
+              sourceID: data[offset + 4],
+              maxMultiplier: littleEndianUInt16(data, offset + 5),
+              controls: Array(data[controlsStart..<controlsEnd]),
+              processingStringIndex: processingStringIndex
+            )
+          )
         } else if descriptorSubType == 0x06,
           length >= 24,
           let interfaceNumber = currentInterfaceNumber
@@ -239,6 +274,7 @@ public enum UVCDescriptorParser {
       configurationLength: data.count,
       videoControlInterfaces: videoControlInterfaces,
       cameraTerminals: cameraTerminals,
+      processingUnits: processingUnits,
       extensionUnits: extensionUnits
     )
   }

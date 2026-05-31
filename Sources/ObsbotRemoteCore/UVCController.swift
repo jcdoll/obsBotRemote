@@ -1,54 +1,6 @@
 import Foundation
 import ObsbotRemoteUSBBridge
 
-public enum UVCRequestError: Error, CustomStringConvertible, Equatable, Sendable {
-  case deviceRequestFailed(operation: String, code: Int32, transferred: UInt32)
-  case descriptorReadFailed(code: Int32)
-  case descriptorTooLarge(required: Int)
-  case missingExtensionUnit(UInt8)
-  case missingCameraTerminal
-  case unsupportedControl(String)
-  case shortRead(operation: String, expected: Int, actual: UInt32)
-
-  public var description: String {
-    switch self {
-    case .deviceRequestFailed(let operation, let code, let transferred):
-      "\(operation) failed: \(formatIOReturn(code)) transferred=\(transferred)"
-    case .descriptorReadFailed(let code):
-      "failed to read USB configuration descriptor: \(formatIOReturn(code))"
-    case .descriptorTooLarge(let required):
-      "USB configuration descriptor is too large for the probe buffer: \(required) byte(s)"
-    case .missingExtensionUnit(let unitID):
-      "no UVC extension unit with id \(unitID) was found in the camera configuration descriptor"
-    case .missingCameraTerminal:
-      "no UVC camera terminal was found in the camera configuration descriptor"
-    case .unsupportedControl(let control):
-      "camera terminal does not advertise \(control)"
-    case .shortRead(let operation, let expected, let actual):
-      "\(operation) returned \(actual) byte(s), expected \(expected)"
-    }
-  }
-}
-
-public struct UVCZoomRange: Equatable, Sendable {
-  public var minimum: Int
-  public var maximum: Int
-  public var resolution: Int
-  public var defaultValue: Int
-}
-
-public struct UVCPanTiltValue: Equatable, Sendable {
-  public var pan: Int32
-  public var tilt: Int32
-}
-
-public struct UVCPanTiltRange: Equatable, Sendable {
-  public var minimum: UVCPanTiltValue
-  public var maximum: UVCPanTiltValue
-  public var resolution: UVCPanTiltValue
-  public var defaultValue: UVCPanTiltValue
-}
-
 public final class UVCController {
   public var vendorID: UInt16
   public var productID: UInt16
@@ -77,7 +29,8 @@ public final class UVCController {
 
   public func setZoom(_ value: Int) throws {
     let terminal = try cameraTerminal(requiring: .zoomAbsolute)
-    let clamped = max(0, min(value, Int(UInt16.max)))
+    let range = try readZoomRange()
+    let clamped = range.clamp(value)
     var payload = [
       UInt8(clamped & 0xFF),
       UInt8((clamped >> 8) & 0xFF),
@@ -91,6 +44,10 @@ public final class UVCController {
       payload: &payload,
       expectedLength: payload.count
     )
+  }
+
+  public func clampedZoomValue(_ value: Int) throws -> Int {
+    try readZoomRange().clamp(value)
   }
 
   public func readPanTilt() throws -> (pan: Int32, tilt: Int32) {
@@ -206,6 +163,24 @@ public final class UVCController {
     return payload
   }
 
+  public func readExtensionUnitCurrentAllowingShortRead(
+    unitID: UInt8,
+    selector: UInt8,
+    length: Int
+  ) throws -> [UInt8] {
+    let unit = try extensionUnit(unitID: unitID)
+    var payload = [UInt8](repeating: 0, count: length)
+    let transferred = try deviceRequestAllowingShortRead(
+      operation: "GET_CUR xu unit=\(unitID) selector=\(selector)",
+      requestType: 0xA1,
+      request: 0x81,
+      value: UInt16(selector) << 8,
+      index: controlIndex(for: unit),
+      payload: &payload
+    )
+    return Array(payload.prefix(transferred))
+  }
+
   public func setExtensionUnitCurrent(unitID: UInt8, selector: UInt8, payload: [UInt8]) throws {
     let unit = try extensionUnit(unitID: unitID)
     var mutablePayload = payload
@@ -289,7 +264,7 @@ public final class UVCController {
     return (previous, next)
   }
 
-  private func cameraTerminal(requiring control: UVCCameraTerminalControl) throws
+  func cameraTerminal(requiring control: UVCCameraTerminalControl) throws
     -> UVCCameraTerminal
   {
     guard let terminal = try probe().primaryCameraTerminal else {
@@ -301,18 +276,33 @@ public final class UVCController {
     return terminal
   }
 
-  private func extensionUnit(unitID: UInt8) throws -> UVCExtensionUnit {
+  func processingUnit(requiring control: UVCProcessingUnitControl) throws -> UVCProcessingUnit {
+    let probe = try probe()
+    guard !probe.processingUnits.isEmpty else {
+      throw UVCRequestError.missingProcessingUnit
+    }
+    guard let unit = probe.processingUnits.first(where: { $0.supports(control) }) else {
+      throw UVCRequestError.unsupportedControl(control.displayName)
+    }
+    return unit
+  }
+
+  func extensionUnit(unitID: UInt8) throws -> UVCExtensionUnit {
     guard let unit = try probe().extensionUnits.first(where: { $0.unitID == unitID }) else {
       throw UVCRequestError.missingExtensionUnit(unitID)
     }
     return unit
   }
 
-  private func controlIndex(for terminal: UVCCameraTerminal) -> UInt16 {
+  func controlIndex(for terminal: UVCCameraTerminal) -> UInt16 {
     (UInt16(terminal.terminalID) << 8) | UInt16(terminal.interfaceNumber)
   }
 
-  private func controlIndex(for unit: UVCExtensionUnit) -> UInt16 {
+  func controlIndex(for unit: UVCProcessingUnit) -> UInt16 {
+    (UInt16(unit.unitID) << 8) | UInt16(unit.interfaceNumber)
+  }
+
+  func controlIndex(for unit: UVCExtensionUnit) -> UInt16 {
     (UInt16(unit.unitID) << 8) | UInt16(unit.interfaceNumber)
   }
 
@@ -339,7 +329,7 @@ public final class UVCController {
     return Data(buffer.prefix(length))
   }
 
-  private func deviceRequest(
+  func deviceRequest(
     operation: String,
     requestType: UInt8,
     request: UInt8,
@@ -348,6 +338,31 @@ public final class UVCController {
     payload: inout [UInt8],
     expectedLength: Int
   ) throws {
+    let transferred = try deviceRequestAllowingShortRead(
+      operation: operation,
+      requestType: requestType,
+      request: request,
+      value: value,
+      index: index,
+      payload: &payload
+    )
+    guard transferred == expectedLength else {
+      throw UVCRequestError.shortRead(
+        operation: operation,
+        expected: expectedLength,
+        actual: UInt32(transferred)
+      )
+    }
+  }
+
+  func deviceRequestAllowingShortRead(
+    operation: String,
+    requestType: UInt8,
+    request: UInt8,
+    value: UInt16,
+    index: UInt16,
+    payload: inout [UInt8]
+  ) throws -> Int {
     var transferred: UInt32 = 0
     let payloadLength = UInt16(payload.count)
     let result = payload.withUnsafeMutableBufferPointer { pointer in
@@ -370,17 +385,11 @@ public final class UVCController {
         transferred: transferred
       )
     }
-    guard transferred == UInt32(expectedLength) else {
-      throw UVCRequestError.shortRead(
-        operation: operation,
-        expected: expectedLength,
-        actual: transferred
-      )
-    }
+    return Int(transferred)
   }
 }
 
-private enum UVCGetRequest {
+enum UVCGetRequest {
   static let current: UInt8 = 0x81
   static let minimum: UInt8 = 0x82
   static let maximum: UInt8 = 0x83
@@ -405,9 +414,4 @@ extension Int32 {
     }
     self = Int32(bitPattern: raw)
   }
-}
-
-private func formatIOReturn(_ code: Int32) -> String {
-  let unsigned = UInt32(bitPattern: code)
-  return "0x" + String(unsigned, radix: 16, uppercase: true)
 }
