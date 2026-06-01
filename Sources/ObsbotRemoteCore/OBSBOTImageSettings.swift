@@ -134,7 +134,9 @@ extension UVCController {
     var readback = CameraImageControlsReadback()
     if let whiteBalance = try? readOBSBOTWhiteBalanceSetting() {
       readback.whiteBalanceAuto = whiteBalance.mode == .auto
-      readback.whiteBalanceKelvin = whiteBalance.kelvin
+      if whiteBalance.mode == .manual {
+        readback.whiteBalanceKelvin = whiteBalance.kelvin
+      }
     }
     return readback.hasValues ? readback : nil
   }
@@ -152,10 +154,10 @@ extension UVCController {
 
   public func resetCameraImageSettings() throws {
     let neutral = OBSBOTRemoteProtocol.imageAdjustmentRange.defaultValue
-    try setCameraImageAdjustment(.brightness, value: neutral)
-    try setCameraImageAdjustment(.contrast, value: neutral)
-    try setCameraImageAdjustment(.saturation, value: neutral)
-    try setCameraWhiteBalance(mode: .auto)
+    try setOBSBOTImageAdjustment(.brightness, value: neutral)
+    try setOBSBOTImageAdjustment(.contrast, value: neutral)
+    try setOBSBOTImageAdjustment(.saturation, value: neutral)
+    try resetCameraWhiteBalanceToNeutralAuto()
   }
 
   public func setOBSBOTImageAdjustment(_ adjustment: OBSBOTImageAdjustment, value: Int) throws {

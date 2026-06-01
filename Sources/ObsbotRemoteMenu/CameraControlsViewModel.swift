@@ -253,6 +253,7 @@ final class CameraControlsViewModel: ObservableObject {
     invalidateReadback()
     whiteBalanceAuto = enabled
     if enabled {
+      whiteBalanceValue = Double(OBSBOTRemoteProtocol.whiteBalanceKelvinRange.defaultValue)
       runCommand(coordinator.setWhiteBalanceAuto)
     } else {
       runCommand { completion in
@@ -367,6 +368,9 @@ final class CameraControlsViewModel: ObservableObject {
     }
     if let whiteBalanceAuto = snapshot.whiteBalanceAuto {
       self.whiteBalanceAuto = whiteBalanceAuto
+      if whiteBalanceAuto, snapshot.whiteBalanceKelvin == nil {
+        whiteBalanceValue = Double(OBSBOTRemoteProtocol.whiteBalanceKelvinRange.defaultValue)
+      }
     }
   }
 }

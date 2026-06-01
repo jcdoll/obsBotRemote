@@ -17,6 +17,29 @@ public enum OBSBOTWhiteBalanceMode: UInt32, Sendable, CustomStringConvertible {
 public struct OBSBOTWhiteBalanceSetting: Equatable, Sendable {
   public var mode: OBSBOTWhiteBalanceMode
   public var kelvin: Int
+  public var isManualGain: Bool
+  public var blueGain: Int32
+  public var redGain: Int32
+  public var xabOffset: Int32
+  public var ygmOffset: Int32
+
+  public init(
+    mode: OBSBOTWhiteBalanceMode,
+    kelvin: Int,
+    isManualGain: Bool,
+    blueGain: Int32,
+    redGain: Int32,
+    xabOffset: Int32,
+    ygmOffset: Int32
+  ) {
+    self.mode = mode
+    self.kelvin = kelvin
+    self.isManualGain = isManualGain
+    self.blueGain = blueGain
+    self.redGain = redGain
+    self.xabOffset = xabOffset
+    self.ygmOffset = ygmOffset
+  }
 }
 
 extension OBSBOTRemoteProtocol {
@@ -24,12 +47,24 @@ extension OBSBOTRemoteProtocol {
     minimum: 2_000,
     maximum: 10_000,
     resolution: 100,
-    defaultValue: 5_000
+    defaultValue: 3_000
   )
+  public static let neutralWhiteBalanceOffset: Int32 = 28
+
+  public static func neutralAutoWhiteBalanceSetting() -> OBSBOTWhiteBalanceSetting {
+    OBSBOTWhiteBalanceSetting(
+      mode: .auto,
+      kelvin: 0,
+      isManualGain: false,
+      blueGain: 0,
+      redGain: 0,
+      xabOffset: neutralWhiteBalanceOffset,
+      ygmOffset: neutralWhiteBalanceOffset
+    )
+  }
 
   public static func makeWhiteBalanceSettingPacket(
-    mode: OBSBOTWhiteBalanceMode,
-    kelvin: Int,
+    _ setting: OBSBOTWhiteBalanceSetting,
     sequence: UInt16
   ) -> [UInt8] {
     makeV3CommandPacket(
@@ -37,7 +72,7 @@ extension OBSBOTRemoteProtocol {
       route: 0x02,
       v3CommandSet: 0x02,
       v3CommandID: 0x00AB,
-      payload: whiteBalanceSettingPayload(mode: mode, kelvin: kelvin),
+      payload: whiteBalanceSettingPayload(setting),
       sequence: sequence
     )
   }
@@ -62,10 +97,10 @@ extension OBSBOTRemoteProtocol {
       commandSet: 0x02,
       commandID: 0x00AA,
       operation: "OBSBOT white balance response")
-    guard payload.count >= 8 else {
+    guard payload.count >= 28 else {
       throw UVCRequestError.shortRead(
         operation: "OBSBOT white balance payload",
-        expected: 8,
+        expected: 28,
         actual: UInt32(payload.count)
       )
     }
@@ -77,7 +112,12 @@ extension OBSBOTRemoteProtocol {
       : OBSBOTWhiteBalanceMode.auto
     return OBSBOTWhiteBalanceSetting(
       mode: mode,
-      kelvin: clampedWhiteBalanceKelvin(rawKelvin)
+      kelvin: mode == .auto ? rawKelvin : clampedWhiteBalanceKelvin(rawKelvin),
+      isManualGain: payload[8] != 0,
+      blueGain: littleEndianInt32(payload[12..<16]),
+      redGain: littleEndianInt32(payload[16..<20]),
+      xabOffset: littleEndianInt32(payload[20..<24]),
+      ygmOffset: littleEndianInt32(payload[24..<28])
     )
   }
 
@@ -87,19 +127,28 @@ extension OBSBOTRemoteProtocol {
 }
 
 extension UVCController {
-  public func setCameraWhiteBalance(mode: OBSBOTWhiteBalanceMode, kelvin: Int = 5_000) throws {
+  public func setCameraWhiteBalance(
+    mode: OBSBOTWhiteBalanceMode,
+    kelvin: Int = OBSBOTRemoteProtocol.whiteBalanceKelvinRange.defaultValue
+  ) throws {
     let clamped = OBSBOTRemoteProtocol.clampedWhiteBalanceKelvin(kelvin)
-    let packet = OBSBOTRemoteProtocol.makeWhiteBalanceSettingPacket(
-      mode: mode,
-      kelvin: clamped,
-      sequence: UInt16.random(in: 1...UInt16.max)
-    )
-    try setExtensionUnitCurrent(
-      unitID: OBSBOTRemoteProtocol.extensionUnitID,
-      selector: OBSBOTRemoteProtocol.commandSelector,
-      payload: packet
-    )
+    var setting = try readOBSBOTWhiteBalanceSetting()
+    setting.mode = mode
+    if mode == .manual {
+      setting.kelvin = clamped
+    }
+    try writeOBSBOTWhiteBalanceSetting(setting)
     try waitForOBSBOTWhiteBalance(mode: mode, kelvin: clamped)
+  }
+
+  public func resetCameraWhiteBalanceToNeutralAuto() throws {
+    try writeOBSBOTWhiteBalanceSetting(OBSBOTRemoteProtocol.neutralAutoWhiteBalanceSetting())
+    try waitForOBSBOTWhiteBalance(
+      mode: .auto,
+      kelvin: OBSBOTRemoteProtocol.whiteBalanceKelvinRange.defaultValue,
+      xabOffset: OBSBOTRemoteProtocol.neutralWhiteBalanceOffset,
+      ygmOffset: OBSBOTRemoteProtocol.neutralWhiteBalanceOffset
+    )
   }
 
   public func readOBSBOTWhiteBalanceSetting() throws -> OBSBOTWhiteBalanceSetting {
@@ -140,20 +189,40 @@ extension UVCController {
     )
   }
 
-  private func waitForOBSBOTWhiteBalance(mode: OBSBOTWhiteBalanceMode, kelvin: Int) throws {
+  private func writeOBSBOTWhiteBalanceSetting(_ setting: OBSBOTWhiteBalanceSetting) throws {
+    let packet = OBSBOTRemoteProtocol.makeWhiteBalanceSettingPacket(
+      setting,
+      sequence: UInt16.random(in: 1...UInt16.max)
+    )
+    try setExtensionUnitCurrent(
+      unitID: OBSBOTRemoteProtocol.extensionUnitID,
+      selector: OBSBOTRemoteProtocol.commandSelector,
+      payload: packet
+    )
+  }
+
+  private func waitForOBSBOTWhiteBalance(
+    mode: OBSBOTWhiteBalanceMode,
+    kelvin: Int,
+    xabOffset: Int32? = nil,
+    ygmOffset: Int32? = nil
+  ) throws {
     var lastReadback: OBSBOTWhiteBalanceSetting?
     for _ in 0..<20 {
       Thread.sleep(forTimeInterval: 0.05)
       let readback = try readOBSBOTWhiteBalanceSetting()
       lastReadback = readback
-      if readback.mode == mode && (mode == .auto || readback.kelvin == kelvin) {
+      let kelvinMatches = mode == .auto || readback.kelvin == kelvin
+      let xabMatches = xabOffset.map { readback.xabOffset == $0 } ?? true
+      let ygmMatches = ygmOffset.map { readback.ygmOffset == $0 } ?? true
+      if readback.mode == mode && kelvinMatches && xabMatches && ygmMatches {
         return
       }
     }
 
     let detail =
       lastReadback.map {
-        "got mode=\($0.mode) kelvin=\($0.kelvin)"
+        "got mode=\($0.mode) kelvin=\($0.kelvin) xab=\($0.xabOffset) ygm=\($0.ygmOffset)"
       } ?? "no readback"
     throw UVCRequestError.invalidResponse(
       operation: "OBSBOT white balance setting",
@@ -162,19 +231,16 @@ extension UVCController {
   }
 }
 
-private func whiteBalanceSettingPayload(
-  mode: OBSBOTWhiteBalanceMode,
-  kelvin: Int
-) -> [UInt8] {
+private func whiteBalanceSettingPayload(_ setting: OBSBOTWhiteBalanceSetting) -> [UInt8] {
   var payload: [UInt8] = []
-  payload.appendLittleEndian(mode.rawValue)
-  payload.appendLittleEndian(UInt32(OBSBOTRemoteProtocol.clampedWhiteBalanceKelvin(kelvin)))
-  payload.append(0)
+  payload.appendLittleEndian(setting.mode.rawValue)
+  payload.appendLittleEndian(Int32(setting.kelvin))
+  payload.append(setting.isManualGain ? 1 : 0)
   payload.append(contentsOf: [0, 0, 0])
-  payload.appendLittleEndian(UInt32(0))
-  payload.appendLittleEndian(UInt32(0))
-  payload.appendLittleEndian(UInt32(0))
-  payload.appendLittleEndian(UInt32(0))
+  payload.appendLittleEndian(setting.blueGain)
+  payload.appendLittleEndian(setting.redGain)
+  payload.appendLittleEndian(setting.xabOffset)
+  payload.appendLittleEndian(setting.ygmOffset)
   return payload
 }
 
@@ -196,6 +262,10 @@ extension Array where Element == UInt8 {
     append(UInt8((value >> 8) & 0xFF))
     append(UInt8((value >> 16) & 0xFF))
     append(UInt8((value >> 24) & 0xFF))
+  }
+
+  fileprivate mutating func appendLittleEndian(_ value: Int32) {
+    appendLittleEndian(UInt32(bitPattern: value))
   }
 }
 

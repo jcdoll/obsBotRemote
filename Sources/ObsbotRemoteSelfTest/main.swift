@@ -295,8 +295,14 @@ expect(
 expect(brightnessPacket.dropFirst(20).allSatisfy { $0 == 0 }, "OBSBOT brightness packet padding")
 
 let whiteBalancePacket = OBSBOTRemoteProtocol.makeWhiteBalanceSettingPacket(
-  mode: .manual,
-  kelvin: 5_000,
+  OBSBOTWhiteBalanceSetting(
+    mode: .manual,
+    kelvin: 5_000,
+    isManualGain: true,
+    blueGain: 11,
+    redGain: 22,
+    xabOffset: 28,
+    ygmOffset: 29),
   sequence: 0x0016
 )
 expect(whiteBalancePacket.count == 60, "OBSBOT white balance packet length")
@@ -306,22 +312,103 @@ expect(
   "OBSBOT white balance packet command"
 )
 expect(
-  Array(whiteBalancePacket[16..<24]) == [0xFF, 0x00, 0x00, 0x00, 0x88, 0x13, 0x00, 0x00],
-  "OBSBOT white balance packet payload"
+  Array(whiteBalancePacket[16..<44])
+    == [
+      0xFF, 0x00, 0x00, 0x00, 0x88, 0x13, 0x00, 0x00,
+      0x01, 0x00, 0x00, 0x00, 0x0B, 0x00, 0x00, 0x00,
+      0x16, 0x00, 0x00, 0x00, 0x1C, 0x00, 0x00, 0x00,
+      0x1D, 0x00, 0x00, 0x00,
+    ].map(UInt8.init),
+  "OBSBOT white balance packet preserves full SDK payload"
 )
 
 var whiteBalanceResponse = OBSBOTRemoteProtocol.makeWhiteBalanceSettingGetPacket(sequence: 0x0016)
-whiteBalanceResponse[12] = 0x08
+whiteBalanceResponse[12] = 0x1C
 whiteBalanceResponse[13] = 0x00
 whiteBalanceResponse.replaceSubrange(
-  16..<24,
-  with: [0xFF, 0x00, 0x00, 0x00, 0x88, 0x13, 0x00, 0x00].map(UInt8.init)
+  16..<44,
+  with: [
+    0xFF, 0x00, 0x00, 0x00, 0x88, 0x13, 0x00, 0x00,
+    0x01, 0x00, 0x00, 0x00, 0x0B, 0x00, 0x00, 0x00,
+    0x16, 0x00, 0x00, 0x00, 0x1C, 0x00, 0x00, 0x00,
+    0x1D, 0x00, 0x00, 0x00,
+  ].map(UInt8.init)
 )
 let whiteBalanceSetting = expectNoThrow("parse OBSBOT white balance readback") {
   try OBSBOTRemoteProtocol.whiteBalanceSetting(fromResponse: whiteBalanceResponse, sequence: 0x0016)
 }
 expect(whiteBalanceSetting.mode == .manual, "OBSBOT white balance readback mode")
 expect(whiteBalanceSetting.kelvin == 5_000, "OBSBOT white balance readback kelvin")
+expect(whiteBalanceSetting.isManualGain, "OBSBOT white balance readback manual gain")
+expect(whiteBalanceSetting.blueGain == 11, "OBSBOT white balance readback blue gain")
+expect(whiteBalanceSetting.redGain == 22, "OBSBOT white balance readback red gain")
+expect(whiteBalanceSetting.xabOffset == 28, "OBSBOT white balance readback xab offset")
+expect(whiteBalanceSetting.ygmOffset == 29, "OBSBOT white balance readback ygm offset")
+
+let autoWhiteBalancePacket = OBSBOTRemoteProtocol.makeWhiteBalanceSettingPacket(
+  OBSBOTWhiteBalanceSetting(
+    mode: .auto,
+    kelvin: 4_200,
+    isManualGain: true,
+    blueGain: 11,
+    redGain: 22,
+    xabOffset: 28,
+    ygmOffset: 29),
+  sequence: 0x0016
+)
+expect(autoWhiteBalancePacket.count == 60, "OBSBOT auto white balance packet length")
+expect(
+  Array(autoWhiteBalancePacket[16..<44])
+    == [
+      0x00, 0x00, 0x00, 0x00, 0x68, 0x10, 0x00, 0x00,
+      0x01, 0x00, 0x00, 0x00, 0x0B, 0x00, 0x00, 0x00,
+      0x16, 0x00, 0x00, 0x00, 0x1C, 0x00, 0x00, 0x00,
+      0x1D, 0x00, 0x00, 0x00,
+    ].map(UInt8.init),
+  "OBSBOT auto white balance preserves full SDK payload")
+
+var autoWhiteBalanceResponse = OBSBOTRemoteProtocol.makeWhiteBalanceSettingGetPacket(
+  sequence: 0x0016)
+autoWhiteBalanceResponse[12] = 0x1C
+autoWhiteBalanceResponse[13] = 0x00
+autoWhiteBalanceResponse.replaceSubrange(
+  16..<44,
+  with: [
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x0B, 0x00, 0x00, 0x00,
+    0x16, 0x00, 0x00, 0x00, 0x1C, 0x00, 0x00, 0x00,
+    0x1D, 0x00, 0x00, 0x00,
+  ].map(UInt8.init)
+)
+let autoWhiteBalanceSetting = expectNoThrow("parse OBSBOT auto white balance readback") {
+  try OBSBOTRemoteProtocol.whiteBalanceSetting(
+    fromResponse: autoWhiteBalanceResponse,
+    sequence: 0x0016)
+}
+expect(autoWhiteBalanceSetting.mode == .auto, "OBSBOT auto white balance readback mode")
+expect(autoWhiteBalanceSetting.kelvin == 0, "OBSBOT auto white balance readback parameter")
+expect(autoWhiteBalanceSetting.blueGain == 11, "OBSBOT auto white balance readback blue gain")
+expect(autoWhiteBalanceSetting.redGain == 22, "OBSBOT auto white balance readback red gain")
+expect(autoWhiteBalanceSetting.xabOffset == 28, "OBSBOT auto white balance readback xab offset")
+expect(autoWhiteBalanceSetting.ygmOffset == 29, "OBSBOT auto white balance readback ygm offset")
+
+let neutralAutoWhiteBalancePacket = OBSBOTRemoteProtocol.makeWhiteBalanceSettingPacket(
+  OBSBOTRemoteProtocol.neutralAutoWhiteBalanceSetting(),
+  sequence: 0x0016
+)
+expect(neutralAutoWhiteBalancePacket.count == 60, "OBSBOT neutral white balance packet length")
+expect(
+  Array(neutralAutoWhiteBalancePacket[16..<44])
+    == [
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x1C, 0x00, 0x00, 0x00,
+      0x1C, 0x00, 0x00, 0x00,
+    ].map(UInt8.init),
+  "OBSBOT neutral white balance reset uses midpoint tint offsets")
+expect(
+  OBSBOTRemoteProtocol.neutralWhiteBalanceOffset == 28,
+  "OBSBOT neutral white balance offset midpoint")
 
 let humanNormalPayload = expectNoThrow("build OBSBOT human normal AI payload") {
   try OBSBOTRemoteProtocol.makeAIModePayload(.humanNormal)
