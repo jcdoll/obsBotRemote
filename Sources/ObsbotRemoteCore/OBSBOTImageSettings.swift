@@ -37,20 +37,6 @@ public enum OBSBOTImageAdjustment: CaseIterable, Sendable, CustomStringConvertib
   }
 }
 
-public enum OBSBOTWhiteBalanceMode: UInt32, Sendable, CustomStringConvertible {
-  case auto = 0
-  case manual = 255
-
-  public var description: String {
-    switch self {
-    case .auto:
-      "auto"
-    case .manual:
-      "manual"
-    }
-  }
-}
-
 public struct CameraImageControlsReadback: Equatable, Sendable {
   public var brightness: Int?
   public var contrast: Int?
@@ -71,12 +57,6 @@ extension OBSBOTRemoteProtocol {
     resolution: 1,
     defaultValue: 50
   )
-  public static let whiteBalanceKelvinRange = UVCScalarRange(
-    minimum: 2_000,
-    maximum: 10_000,
-    resolution: 100,
-    defaultValue: 5_000
-  )
 
   public static func makeImageAdjustmentPacket(
     _ adjustment: OBSBOTImageAdjustment,
@@ -92,10 +72,6 @@ extension OBSBOTRemoteProtocol {
 
   public static func clampedImageAdjustmentValue(_ value: Int) -> Int {
     max(imageAdjustmentRange.minimum, min(value, imageAdjustmentRange.maximum))
-  }
-
-  public static func clampedWhiteBalanceKelvin(_ kelvin: Int) -> Int {
-    max(whiteBalanceKelvinRange.minimum, min(kelvin, whiteBalanceKelvinRange.maximum))
   }
 
   public static func imageAdjustmentRawValue(_ value: Int, range: UVCScalarRange) -> Int {
@@ -156,28 +132,9 @@ extension OBSBOTRemoteProtocol {
 extension UVCController {
   public func readCameraImageControls() -> CameraImageControlsReadback? {
     var readback = CameraImageControlsReadback()
-    for adjustment in OBSBOTImageAdjustment.allCases {
-      guard
-        let range = try? readProcessingControlRange(adjustment.processingUnitControl),
-        let rawValue = try? readProcessingControl(adjustment.processingUnitControl)
-      else {
-        continue
-      }
-      let percent = OBSBOTRemoteProtocol.imageAdjustmentPercent(rawValue: rawValue, range: range)
-      switch adjustment {
-      case .brightness:
-        readback.brightness = percent
-      case .contrast:
-        readback.contrast = percent
-      case .saturation:
-        readback.saturation = percent
-      }
-    }
-    if let whiteBalanceAuto = try? readProcessingControl(.whiteBalanceTemperatureAuto) {
-      readback.whiteBalanceAuto = whiteBalanceAuto != 0
-    }
-    if let whiteBalanceKelvin = try? readProcessingControl(.whiteBalanceTemperature) {
-      readback.whiteBalanceKelvin = whiteBalanceKelvin
+    if let whiteBalance = try? readOBSBOTWhiteBalanceSetting() {
+      readback.whiteBalanceAuto = whiteBalance.mode == .auto
+      readback.whiteBalanceKelvin = whiteBalance.kelvin
     }
     return readback.hasValues ? readback : nil
   }
@@ -190,19 +147,6 @@ extension UVCController {
       return
     } catch {
       try setOBSBOTImageAdjustment(adjustment, value: value)
-    }
-  }
-
-  public func setCameraWhiteBalance(mode: OBSBOTWhiteBalanceMode, kelvin: Int = 5_000) throws {
-    switch mode {
-    case .auto:
-      try setProcessingControl(.whiteBalanceTemperatureAuto, value: 1)
-    case .manual:
-      try setProcessingControl(.whiteBalanceTemperatureAuto, value: 0)
-      let range = try? readProcessingControlRange(.whiteBalanceTemperature)
-      let clamped =
-        clamp(kelvin, to: range) ?? OBSBOTRemoteProtocol.clampedWhiteBalanceKelvin(kelvin)
-      try setProcessingControl(.whiteBalanceTemperature, value: clamped)
     }
   }
 
@@ -256,13 +200,4 @@ private func interpolatedPercent(
   let percent =
     Int((Double(percentLower) + (Double(percentUpper - percentLower) * ratio)).rounded())
   return OBSBOTRemoteProtocol.clampedImageAdjustmentValue(percent)
-}
-
-private func clamp(_ value: Int, to range: UVCScalarRange?) -> Int? {
-  guard let range else {
-    return nil
-  }
-  let lower = min(range.minimum, range.maximum)
-  let upper = max(range.minimum, range.maximum)
-  return max(lower, min(value, upper))
 }

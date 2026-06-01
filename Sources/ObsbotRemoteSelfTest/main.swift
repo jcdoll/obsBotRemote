@@ -68,7 +68,7 @@ let uvcDescriptor = Data([
   9, 4, 0, 0, 0, 0x0E, 0x01, 0, 0,
   18, 0x24, 0x02, 3, 0x01, 0x02, 0, 0,
   0, 0, 0, 0, 0, 0, 3, 0, 0x14, 0,
-  12, 0x24, 0x05, 5, 3, 0, 0, 3, 0x42, 0x40, 0x01, 0,
+  12, 0x24, 0x05, 5, 3, 0, 0, 3, 0x42, 0x04, 0x04, 0,
   26, 0x24, 0x06, 4,
   0x91, 0x72, 0x1E, 0x9A, 0x43, 0x68, 0x83, 0x46,
   0x6D, 0x92, 0x39, 0xBC, 0x79, 0x06, 0xEE, 0x49,
@@ -293,6 +293,35 @@ expect(
   "OBSBOT image raw default maps to neutral percent"
 )
 expect(brightnessPacket.dropFirst(20).allSatisfy { $0 == 0 }, "OBSBOT brightness packet padding")
+
+let whiteBalancePacket = OBSBOTRemoteProtocol.makeWhiteBalanceSettingPacket(
+  mode: .manual,
+  kelvin: 5_000,
+  sequence: 0x0016
+)
+expect(whiteBalancePacket.count == 60, "OBSBOT white balance packet length")
+expect(whiteBalancePacket[1] == 0x21, "OBSBOT white balance packet flag")
+expect(
+  Array(whiteBalancePacket[8..<14]) == [0x0A, 0x02, 0xC2, 0x2A, 0x1C, 0x00],
+  "OBSBOT white balance packet command"
+)
+expect(
+  Array(whiteBalancePacket[16..<24]) == [0xFF, 0x00, 0x00, 0x00, 0x88, 0x13, 0x00, 0x00],
+  "OBSBOT white balance packet payload"
+)
+
+var whiteBalanceResponse = OBSBOTRemoteProtocol.makeWhiteBalanceSettingGetPacket(sequence: 0x0016)
+whiteBalanceResponse[12] = 0x08
+whiteBalanceResponse[13] = 0x00
+whiteBalanceResponse.replaceSubrange(
+  16..<24,
+  with: [0xFF, 0x00, 0x00, 0x00, 0x88, 0x13, 0x00, 0x00].map(UInt8.init)
+)
+let whiteBalanceSetting = expectNoThrow("parse OBSBOT white balance readback") {
+  try OBSBOTRemoteProtocol.whiteBalanceSetting(fromResponse: whiteBalanceResponse, sequence: 0x0016)
+}
+expect(whiteBalanceSetting.mode == .manual, "OBSBOT white balance readback mode")
+expect(whiteBalanceSetting.kelvin == 5_000, "OBSBOT white balance readback kelvin")
 
 let humanNormalPayload = expectNoThrow("build OBSBOT human normal AI payload") {
   try OBSBOTRemoteProtocol.makeAIModePayload(.humanNormal)

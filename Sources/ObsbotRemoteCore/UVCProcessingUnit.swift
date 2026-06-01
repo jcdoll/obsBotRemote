@@ -47,13 +47,15 @@ public enum UVCProcessingUnitControl: UInt8, CaseIterable, Sendable {
   case sharpness = 0x08
   case gamma = 0x09
   case whiteBalanceTemperature = 0x0A
-  case whiteBalanceComponent = 0x0B
-  case digitalMultiplier = 0x0C
-  case digitalMultiplierLimit = 0x0D
-  case hueAuto = 0x0E
-  case whiteBalanceTemperatureAuto = 0x0F
-  case whiteBalanceComponentAuto = 0x10
-  case contrastAuto = 0x11
+  case whiteBalanceTemperatureAuto = 0x0B
+  case whiteBalanceComponent = 0x0C
+  case whiteBalanceComponentAuto = 0x0D
+  case digitalMultiplier = 0x0E
+  case digitalMultiplierLimit = 0x0F
+  case hueAuto = 0x10
+  case analogVideoStandard = 0x11
+  case analogVideoLockStatus = 0x12
+  case contrastAuto = 0x13
 
   public static let imageControls: [UVCProcessingUnitControl] = [
     .brightness,
@@ -79,12 +81,14 @@ public enum UVCProcessingUnitControl: UInt8, CaseIterable, Sendable {
     case .sharpness: "sharpness"
     case .gamma: "gamma"
     case .whiteBalanceTemperature: "white-balance-temp"
+    case .whiteBalanceTemperatureAuto: "white-balance-temp-auto"
     case .whiteBalanceComponent: "white-balance-component"
+    case .whiteBalanceComponentAuto: "white-balance-component-auto"
     case .digitalMultiplier: "digital-multiplier"
     case .digitalMultiplierLimit: "digital-multiplier-limit"
     case .hueAuto: "hue-auto"
-    case .whiteBalanceTemperatureAuto: "white-balance-temp-auto"
-    case .whiteBalanceComponentAuto: "white-balance-component-auto"
+    case .analogVideoStandard: "analog-video-standard"
+    case .analogVideoLockStatus: "analog-video-lock-status"
     case .contrastAuto: "contrast-auto"
     }
   }
@@ -92,7 +96,8 @@ public enum UVCProcessingUnitControl: UInt8, CaseIterable, Sendable {
   var payloadLength: Int {
     switch self {
     case .powerLineFrequency, .hueAuto, .whiteBalanceTemperatureAuto,
-      .whiteBalanceComponentAuto, .contrastAuto:
+      .whiteBalanceComponentAuto, .analogVideoStandard, .analogVideoLockStatus,
+      .contrastAuto:
       1
     case .whiteBalanceComponent:
       4

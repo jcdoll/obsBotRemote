@@ -98,8 +98,7 @@ extension CameraControlCoordinator {
   }
 
   func readImageControlsOnCommandQueue() -> CameraImageControlsSnapshot? {
-    // UVC current values are raw/stale on Tiny 3, so keep the semantic defaults at launch.
-    nil
+    controller.readCameraImageControls().map(CameraImageControlsSnapshot.init(readback:))
   }
 
   func readAdvancedSettingsOnCommandQueue() -> CameraAdvancedSettingsSnapshot {

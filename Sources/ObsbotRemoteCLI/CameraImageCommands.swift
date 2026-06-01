@@ -55,21 +55,21 @@ extension CommandLineTool {
       "whiteBalanceManualRange=(min=\(wbRange.minimum) max=\(wbRange.maximum) default=\(wbRange.defaultValue))"
     )
     if let readback = controller.readCameraImageControls() {
-      print("imageReadback=uvc-processing-unit")
+      print("imageReadback=obsbot-white-balance-setting")
       if let brightness = readback.brightness {
-        print("uvcBrightness=\(brightness)")
+        print("brightness=\(brightness)")
       }
       if let contrast = readback.contrast {
-        print("uvcContrast=\(contrast)")
+        print("contrast=\(contrast)")
       }
       if let saturation = readback.saturation {
-        print("uvcSaturation=\(saturation)")
+        print("saturation=\(saturation)")
       }
       if let whiteBalanceAuto = readback.whiteBalanceAuto {
-        print("uvcWhiteBalanceAutoRaw=\(whiteBalanceAuto ? "on" : "off")")
+        print("whiteBalanceAuto=\(whiteBalanceAuto ? "on" : "off")")
       }
       if let whiteBalanceKelvin = readback.whiteBalanceKelvin {
-        print("uvcWhiteBalanceKelvinRaw=\(whiteBalanceKelvin)")
+        print("whiteBalanceKelvin=\(whiteBalanceKelvin)")
       }
     } else {
       print("imageReadback=unsupported")
