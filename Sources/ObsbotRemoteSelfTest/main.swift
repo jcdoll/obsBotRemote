@@ -374,7 +374,7 @@ autoWhiteBalanceResponse[13] = 0x00
 autoWhiteBalanceResponse.replaceSubrange(
   16..<44,
   with: [
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x68, 0x10, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x0B, 0x00, 0x00, 0x00,
     0x16, 0x00, 0x00, 0x00, 0x1C, 0x00, 0x00, 0x00,
     0x1D, 0x00, 0x00, 0x00,
@@ -386,7 +386,7 @@ let autoWhiteBalanceSetting = expectNoThrow("parse OBSBOT auto white balance rea
     sequence: 0x0016)
 }
 expect(autoWhiteBalanceSetting.mode == .auto, "OBSBOT auto white balance readback mode")
-expect(autoWhiteBalanceSetting.kelvin == 0, "OBSBOT auto white balance readback parameter")
+expect(autoWhiteBalanceSetting.kelvin == 4_200, "OBSBOT auto white balance readback parameter")
 expect(autoWhiteBalanceSetting.blueGain == 11, "OBSBOT auto white balance readback blue gain")
 expect(autoWhiteBalanceSetting.redGain == 22, "OBSBOT auto white balance readback red gain")
 expect(autoWhiteBalanceSetting.xabOffset == 28, "OBSBOT auto white balance readback xab offset")
@@ -400,12 +400,12 @@ expect(neutralAutoWhiteBalancePacket.count == 60, "OBSBOT neutral white balance 
 expect(
   Array(neutralAutoWhiteBalancePacket[16..<44])
     == [
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x88, 0x13, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x1C, 0x00, 0x00, 0x00,
       0x1C, 0x00, 0x00, 0x00,
     ].map(UInt8.init),
-  "OBSBOT neutral white balance reset uses midpoint tint offsets")
+  "OBSBOT neutral white balance reset uses default kelvin and midpoint tint offsets")
 expect(
   OBSBOTRemoteProtocol.neutralWhiteBalanceOffset == 28,
   "OBSBOT neutral white balance offset midpoint")

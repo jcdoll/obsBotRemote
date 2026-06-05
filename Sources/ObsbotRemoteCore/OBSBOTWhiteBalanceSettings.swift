@@ -47,14 +47,14 @@ extension OBSBOTRemoteProtocol {
     minimum: 2_000,
     maximum: 10_000,
     resolution: 100,
-    defaultValue: 3_000
+    defaultValue: 5_000
   )
   public static let neutralWhiteBalanceOffset: Int32 = 28
 
   public static func neutralAutoWhiteBalanceSetting() -> OBSBOTWhiteBalanceSetting {
     OBSBOTWhiteBalanceSetting(
       mode: .auto,
-      kelvin: 0,
+      kelvin: whiteBalanceKelvinRange.defaultValue,
       isManualGain: false,
       blueGain: 0,
       redGain: 0,
@@ -134,9 +134,7 @@ extension UVCController {
     let clamped = OBSBOTRemoteProtocol.clampedWhiteBalanceKelvin(kelvin)
     var setting = try readOBSBOTWhiteBalanceSetting()
     setting.mode = mode
-    if mode == .manual {
-      setting.kelvin = clamped
-    }
+    setting.kelvin = clamped
     try writeOBSBOTWhiteBalanceSetting(setting)
     try waitForOBSBOTWhiteBalance(mode: mode, kelvin: clamped)
   }
