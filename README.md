@@ -4,6 +4,8 @@ Native macOS menu bar controller for using the OBSBOT Smart Remote 2 with an OBS
 
 OBSBOT Remote is distributed as a Homebrew cask. The app starts remote control when launched, listens for the remote's enabled keyboard shortcuts, and sends camera controls through Apple system frameworks.
 
+![OBSBOT Remote Camera Controls window](docs/media/obsbot-remote-camera-controls.png)
+
 ## Install With Homebrew
 
 ```bash
