@@ -12,6 +12,18 @@ brew install --cask obsbot-remote
 open -a "OBSBOT Remote"
 ```
 
+Homebrew may warn that `jcdoll/tap` is not trusted. To allow only this app from the tap, trust the cask instead of the whole tap:
+
+```bash
+brew trust --cask jcdoll/tap/obsbot-remote
+```
+
+Homebrew trust is a local allowlist for loading non-official tap items. It is separate from macOS app security; OBSBOT Remote releases are still Developer ID signed, notarized, and checked by Gatekeeper. If you later want to remove the Homebrew allowlist entry:
+
+```bash
+brew untrust --cask jcdoll/tap/obsbot-remote
+```
+
 Connect the OBSBOT Smart Remote 2 USB dongle and the OBSBOT camera before launching the app. The menu bar video icon opens the app menu with Start/Stop, Camera Controls, Log, and Quit.
 
 Uninstall:
