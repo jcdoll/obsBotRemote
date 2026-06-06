@@ -62,7 +62,7 @@ For a requested `VERSION`:
 
 Before a full release, confirm or discover:
 
-- `VERSION`, such as `0.2.0`. This should be the only required user input for a normal release.
+- `VERSION`, such as `0.3.0`. This should be the only required user input for a normal release.
 - `APP_VERSION` and `APP_BUILD` defaults in `scripts/build-menu-app.sh`.
 - Developer ID signing identity from `security find-identity -v -p codesigning`.
 - Notary keychain profile name, currently `obsbot-remote-notary`.
@@ -149,7 +149,7 @@ Use this cask structure unless the project metadata changes:
 
 ```ruby
 cask "obsbot-remote" do
-  version "0.2.0"
+  version "0.3.0"
   sha256 "REPLACE_WITH_FINAL_ZIP_SHA256"
 
   url "https://github.com/jcdoll/obsBotRemote/releases/download/v#{version}/OBSBOT-Remote-#{version}.zip"

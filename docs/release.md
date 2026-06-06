@@ -132,8 +132,8 @@ An empty history is fine. Authentication errors are not.
 
 Before building a release, pick the release version and build number:
 
-- `VERSION`: user-facing release version, such as `0.2.0`.
-- `APP_BUILD`: monotonically increasing build number, such as `2`.
+- `VERSION`: user-facing release version, such as `0.3.0`.
+- `APP_BUILD`: monotonically increasing build number, such as `3`.
 
 Use a clean working tree before cutting a release:
 
@@ -150,8 +150,8 @@ Run release commands from the repository root.
 Run the build and signing block:
 
 ```bash
-VERSION="0.2.0"
-APP_BUILD="2"
+VERSION="0.3.0"
+APP_BUILD="3"
 IDENTITY="$(security find-identity -v -p codesigning | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | head -1)"
 NOTARY_PROFILE="obsbot-remote-notary"
 APP=".build/OBSBOT Remote.app"
@@ -179,7 +179,7 @@ The local build script ad-hoc signs the app for development. The `codesign` comm
 Run the notarization and final packaging block:
 
 ```bash
-VERSION="0.2.0"
+VERSION="0.3.0"
 NOTARY_PROFILE="obsbot-remote-notary"
 APP=".build/OBSBOT Remote.app"
 ARTIFACT_DIR=".build/release-artifacts"
@@ -209,7 +209,7 @@ shasum -a 256 "$FINAL_ZIP"
 Create a tag and upload the final archive. Run this from the repository root after creating the final zip:
 
 ```bash
-VERSION="0.2.0"
+VERSION="0.3.0"
 FINAL_ZIP=".build/release-artifacts/OBSBOT-Remote-$VERSION.zip"
 SHA256="$(shasum -a 256 "$FINAL_ZIP" | awk '{print $1}')"
 NOTES_FILE="$(mktemp)"
@@ -261,7 +261,7 @@ Create `Casks/obsbot-remote.rb` in that tap:
 
 ```ruby
 cask "obsbot-remote" do
-  version "0.2.0"
+  version "0.3.0"
   sha256 "REPLACE_WITH_FINAL_ZIP_SHA256"
 
   url "https://github.com/jcdoll/obsBotRemote/releases/download/v#{version}/OBSBOT-Remote-#{version}.zip"
@@ -292,7 +292,7 @@ Push the tap:
 cd "$(brew --repo jcdoll/tap)"
 git status --short
 git add Casks/obsbot-remote.rb
-git commit -m "Update obsbot-remote to 0.2.0"
+git commit -m "Update obsbot-remote to 0.3.0"
 git push
 ```
 

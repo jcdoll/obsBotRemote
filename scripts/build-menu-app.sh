@@ -4,8 +4,8 @@ set -euo pipefail
 CONFIGURATION="${1:-release}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_DIR="$REPO_ROOT/.build/OBSBOT Remote.app"
-APP_VERSION="${APP_VERSION:-0.2.0}"
-APP_BUILD="${APP_BUILD:-2}"
+APP_VERSION="${APP_VERSION:-0.3.0}"
+APP_BUILD="${APP_BUILD:-3}"
 
 cd "$REPO_ROOT"
 swift build --product obsbot-remote-menu --configuration "$CONFIGURATION"
